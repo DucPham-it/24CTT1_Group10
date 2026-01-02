@@ -131,7 +131,7 @@ void StateNewGame::Init()
 
         _gameOverSprite.setScale(Vector2f(10.f * WM_GI->getScaleX(), 10.f * WM_GI->getScaleY()));
 
-        _gameOverSprite.setOrigin(48.f, 8.f); 
+        _gameOverSprite.setOrigin(40.f, 8.f); 
         _gameOverSprite.setPosition(
             WM_GI->getWidthScreen() / 2.f,
             WM_GI->getHeightScreen() / 2.f
@@ -141,7 +141,7 @@ void StateNewGame::Init()
     // =================================================
     // BOT SELECT UI (4 BOSSES)
     // =================================================
-    panelBot.setSize({ 460, 280 });
+    panelBot.setSize({ 500, 300 });
     panelBot.setPosition({ W / 2 - 230, H / 2 - 140 });
     panelBot.setFillColor(Color(0, 0, 0, 210));
 
@@ -173,31 +173,31 @@ void StateNewGame::Init()
     // =================================================
     // HUD PANELS
     // =================================================
-    panelP1.setSize({ 220,90 });
-    panelP1.setPosition({ 20, H - 140 });
+    panelP1.setSize({ 300,150});
+    panelP1.setPosition({ 20, H - 220 });
     panelP1.setFillColor(Color(0, 0, 0, 150));
 
-    panelP2.setSize({ 220,90 });
-    panelP2.setPosition({ W - 240, 20 });
+    panelP2.setSize({ 300,150 });
+    panelP2.setPosition({ W - 320, 20 });
     panelP2.setFillColor(Color(0, 0, 0, 150));
 
     auto setupText = [&](Text& t, float x, float y, Color c) {
         t.setFont(*_font);
-        t.setCharacterSize(18);
+        t.setCharacterSize(30);
         t.setFillColor(c);
         t.setPosition(x, y);
         };
 
-    setupText(txtP1_HP, 30, H - 130, Color::Red);
-    setupText(txtP1_Rage, 30, H - 105, Color::Yellow);
-    setupText(txtP1_Shield, 30, H - 80, Color::Cyan);
+    setupText(txtP1_HP, 40, H - 200, Color::Red);
+    setupText(txtP1_Rage, 40, H - 170, Color::Yellow);
+    setupText(txtP1_Shield, 40, H - 140, Color::Cyan);
 
-    setupText(txtP2_HP, W - 230, 30, Color::Red);
-    setupText(txtP2_Rage, W - 230, 55, Color::Yellow);
-    setupText(txtP2_Shield, W - 230, 80, Color::Cyan);
+    setupText(txtP2_HP, W - 300, 40, Color::Red);
+    setupText(txtP2_Rage, W - 300, 70, Color::Yellow);
+    setupText(txtP2_Shield, W - 300, 100, Color::Cyan);
 
     txtTurn.setFont(*_font);
-    txtTurn.setCharacterSize(26);
+    txtTurn.setCharacterSize(32);
     txtTurn.setPosition(W / 2 - 80, 10);
 
     // ===== AVATAR P1 =====
@@ -208,7 +208,7 @@ void StateNewGame::Init()
         avatarP1.setScale(scale, scale);
 
         avatarP1.setPosition(
-            panelP1.getPosition().x + avatarP1.getGlobalBounds().width + 200.f,
+            panelP1.getPosition().x + avatarP1.getGlobalBounds().width + 250.f,
             panelP1.getPosition().y + panelP1.getSize().y / 2.f
             - avatarP1.getGlobalBounds().height / 2.f
         );
@@ -222,7 +222,7 @@ void StateNewGame::Init()
         avatarP2.setScale(scale, scale);
 
         avatarP2.setPosition(
-            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 60.f,
+            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 70.f,
             panelP2.getPosition().y + panelP2.getSize().y / 2.f
             - avatarP2.getGlobalBounds().height / 2.f
         );
@@ -232,37 +232,37 @@ void StateNewGame::Init()
     // INPUT BOX (ENERGY)
     // =================================================
     auto setupBox = [&](InputBox& b, float x, float y) {
-        b.box.setSize({ 50,30 });
+        b.box.setSize({ 70, 50 });
         b.box.setPosition(x, y);
         b.box.setFillColor(Color(40, 40, 40));
         b.text.setFont(*_font);
-        b.text.setCharacterSize(18);
-        b.text.setPosition(x + 5, y + 3);
+        b.text.setCharacterSize(28);
+        b.text.setPosition(x + 7, y + 6);
         b.active = false;
         };
 
-    setupBox(atkBox, W / 2 - 90, H * 0.55f);
-    setupBox(defBox, W / 2 - 30, H * 0.55f);
-    setupBox(jpBox, W / 2 + 30, H * 0.55f);
+    setupBox(atkBox, W / 2 - 110, H * 0.4f);
+    setupBox(defBox, W / 2 - 30, H * 0.4f);
+    setupBox(jpBox, W / 2 + 50, H * 0.4f);
 
     btnConfirmEnergy.setSize({ 180,36 });
-    btnConfirmEnergy.setPosition(W / 2.1f, H * 0.60f);
+    btnConfirmEnergy.setPosition(W / 2.2f, H * 0.45f);
     btnConfirmEnergy.setFillColor(Color(80, 80, 200));
 
     txtConfirmEnergy.setFont(*_font);
     txtConfirmEnergy.setString("CONFIRM");
     txtConfirmEnergy.setPosition(
-        btnConfirmEnergy.getPosition() + Vector2f(20, 6)
+        btnConfirmEnergy.getPosition() + Vector2f(10, 6)
     );
 
     // =================================================
     // HAND
     // =================================================
-    handOrigin = { W * 0.22f, H * 0.72f };
-    handSpacing = (W * 0.56f) / 6.f;
+    handOrigin = { W * 0.2f, H * 0.55f };
+    handSpacing = (W * 0.65f) / 6.f;
 
-    btnConfirmCards.setSize({ 250,36 });
-    btnConfirmCards.setPosition(W / 2.2f, H * 0.9f);
+    btnConfirmCards.setSize({ 250,40 });
+    btnConfirmCards.setPosition(W / 2.2f, H * 0.8f);
     btnConfirmCards.setFillColor(Color(80, 160, 80));
 
     txtConfirmCards.setFont(*_font);
@@ -362,11 +362,12 @@ void StateNewGame::drawHand()
 
         if (auto tex = RM_GI->getTexture(_hand[i]->getIconPath())) {
             ui.sprite.setTexture(*tex);
-            ui.sprite.setScale(0.5f, 0.5f);
+            ui.sprite.setScale(0.55f, 0.55f);
             ui.sprite.setPosition(
                 handOrigin.x + i * handSpacing,
                 handOrigin.y
             );
+            ui.basePos = ui.sprite.getPosition(); 
             m_HandUI.push_back(ui);
         }
     }
@@ -417,6 +418,7 @@ void StateNewGame::Handle(Event event)
         _current->resetTurnState();
 
         if (_scheduler.hasEffect(_current, EffectTag::Stun)) {
+
             _battle->onTurnEnd(*_current);
             processEndOfTurn();
             if (_isGameOver) return;
@@ -469,8 +471,10 @@ void StateNewGame::Handle(Event event)
     {
         if (_phase == Phase::InputEnergy)
             handleEnergyConfirm();
-        else if (_phase == Phase::PickCards)
+        else if (_phase == Phase::PickCards){
             handleCardConfirm();
+        }
+            
     }
 
     if (event.type == Event::MouseButtonPressed) {
@@ -501,9 +505,11 @@ void StateNewGame::handleEnergyConfirm()
     int def = defBox.getInt();
     int jp = jpBox.getInt();
 
-    if (atk + def + jp != Player::MAX_CURSED_ENERGY)
+    if (atk + def + jp != Player::MAX_CURSED_ENERGY){
+        StateNewGame::pushStatusText(format("WRONG !!! ENSURE THE TOTAL IS 5"));
+        StateNewGame::pushStatusText(format("TOTAL KNOW IS {}", atk+def+jp));
         return;
-
+    }
     _current->allocateCursedEnergy(atk, def, jp);
     _phase = Phase::PickCards;
 }
@@ -511,24 +517,46 @@ void StateNewGame::handleEnergyConfirm()
 // =====================================================
 // CARD PICK
 // =====================================================
-void StateNewGame::handleCardClick(Vector2f mouse)
+void StateNewGame::handleCardClick(sf::Vector2f mouse)
 {
     for (auto& ui : m_HandUI) {
-        if (ui.sprite.getGlobalBounds().contains(mouse)) {
-            SoundManager::instance().playSound("card_click_1");
-            if (!ui.selected && _picked.size() < 3) {
-                ui.selected = true;
-                ui.sprite.setColor(Color(200, 200, 255));
-                _picked.push_back(ui.index);
-            }
+        if (!ui.sprite.getGlobalBounds().contains(mouse))
+            continue;
+
+        SoundManager::instance().playSound("card_click_1");
+
+        if (ui.selected) {
+            ui.selected = false;
+            ui.sprite.setColor(sf::Color::White);
+            ui.sprite.setPosition(ui.basePos);
+
+            auto it = std::find(_picked.begin(), _picked.end(), ui.index);
+            if (it != _picked.end())
+                _picked.erase(it);
+
+            return;
         }
+
+        if (_picked.size() < 3) {
+            ui.selected = true;
+            ui.sprite.setColor(sf::Color(200, 200, 255));
+            ui.sprite.setPosition(
+                ui.basePos.x,
+                ui.basePos.y - 20.f 
+            );
+            _picked.push_back(ui.index);
+        }
+
+        return;
     }
 }
 
 void StateNewGame::handleCardConfirm()
 {
-    if (_picked.size() != 3)
+    if (_picked.size() != 3){
         return;
+    }
+
 
     for (int idx : _picked)
         _hand[idx]->execute(*_current, *_opponent, *this);
@@ -594,7 +622,7 @@ void StateNewGame::pushStatusText(const std::string& text)
     _statusQueue.push_back({ text, STATUS_DURATION });
 
     // giới hạn số dòng 
-    const size_t MAX_STATUS = 6;
+    const size_t MAX_STATUS = 10;
     if (_statusQueue.size() > MAX_STATUS)
         _statusQueue.pop_front();
 }

@@ -1,4 +1,5 @@
 #include "StateGuideGame.h"
+#include <sstream>
 #include "../GameManager/StateManager.h"
 #include "../GameManager/ResourceManager.h"
 
@@ -10,6 +11,57 @@ StateGuideGame::StateGuideGame()
     m_MaxOffsetY(0.f)
 {
 }
+
+
+std::string StateGuideGame::WrapText(sf::Font& font, const std::string& str, unsigned size, float maxWidth)
+{
+    std::string result;
+    std::string line;
+    std::string word;
+
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        char c = str[i];
+
+        // Giữ newline gốc
+        if (c == '\n')
+        {
+            result += line + "\n";
+            line.clear();
+            continue;
+        }
+
+        // Tách từ theo space
+        if (c == ' ')
+        {
+            sf::Text test(line + word, font, size);
+            if (test.getLocalBounds().width > maxWidth)
+            {
+                result += line + "\n";
+                line = word + " ";
+            }
+            else
+            {
+                line += word + " ";
+            }
+            word.clear();
+        }
+        else
+        {
+            word += c;
+        }
+    }
+
+    // word cuối
+    sf::Text test(line + word, font, size);
+    if (test.getLocalBounds().width > maxWidth)
+        result += line + "\n" + word;
+    else
+        result += line + word;
+
+    return result;
+}
+
 
 void StateGuideGame::Init() {
     std::cout << ">>> GUIDE STATE INIT <<<\n";
@@ -27,124 +79,96 @@ void StateGuideGame::Init() {
 
     // ===== FONT =====
     auto font = RM_GI->getFont("Minecraft.ttf");
-
+    marginX = 80.f;
+    usableWidth = W - marginX * 2.f;
+    columnWidth = usableWidth / 3.f;
     // ===== COMMON TEXT STYLE =====
 
-    sf::Color DARK_TEXT(255, 255, 255, 200);
-    sf::Color OUTLINE(30, 30, 30, 30);
+    sf::Color DARK_TEXT(255, 255, 255, 255);
+    sf::Color OUTLINE(0, 0, 0, 255);
 
-    // ===== GUIDE COLUMN 1 =====
-    m_GuideTextCol1.setFont(*font);
-    m_GuideTextCol1.setCharacterSize(36);
-    m_GuideTextCol1.setFillColor(DARK_TEXT);
-    m_GuideTextCol1.setOutlineColor(OUTLINE);
-    m_GuideTextCol1.setOutlineThickness(2.f);
-    m_GuideTextCol1.setString(
-        "\nCAC CHI SO CO BAN:\n"
-        "- MAU\n"
-        "- DAME CO BAN\n"
-        "- THANH NO\n\n"
 
-        "LUOT CUA NGUOI CHOI GOM 3 PHAN:\n\n"
+    auto SetupText = [&](sf::Text& t)
+    {
+        t.setFont(*font);
+        t.setCharacterSize(36);
+        t.setFillColor(sf::Color(245,245,245));
+        t.setOutlineColor(sf::Color::Black);
+        t.setOutlineThickness(3.f);
+    };
+    SetupText(m_GuideTextCol1);
+    SetupText(m_GuideTextCol2);
+    SetupText(m_GuideTextCol3);
 
-        "PHAN 1: PHAN BO CHU LUC\n"
-        "- MOI LUOT CO 5 DIEM CHU LUC\n"
-        "- TAN CONG: +10% DAME MOI DIEM\n"
-        "- PHONG THU: -10% DAME NHAN VAO\n"
-        "- JACKPOT: CONG DON VAO THANH NO\n"
-        "- THANH NO TOI DA 36 DIEM\n"
-        "- MOI DIEM NO +2% TI LE TRUNG JACKPOT\n\n"
+    std::string col1 = 
+"CAC CHI SO CO BAN: \n"
+"- MAU \n"
+"- DAME CO BAN \n"
+"- THANH NO \n\n"
+"LUOT NGUOI CHOI GOM 3 PHAN: \n\n"
+"PHAN 1: PHAN BO CHU LUC \n"
+"- MOI LUOT CO 5 DIEM CHU LUC \n"
+"- TAN CONG: +10% DAME MOI DIEM \n"
+"- PHONG THU: -10% DAME NHAN VAO \n"
+"- JACKPOT: CONG DON VAO THANH NO \n"
+"- THANH NO TOI DA 36 DIEM \n"
+"- MOI DIEM NO +2% TI LE TRUNG JACKPOT \n\n"
+"PHAN 2: CHON LA BAI \n"
+"- MOI LUOT RUT NGAU NHIEN 6 LA \n"
+"- CHON 3 LA DE SU DUNG";
 
-        "PHAN 2: CHON LA BAI\n"
-        "- MOI LUOT RUT NGAU NHIEN 6 LA\n"
-        "- CHON 3 LA DE SU DUNG\n\n"
-    );
+m_GuideTextCol1.setString(WrapText(*font, col1, 36, columnWidth - 20));
 
-    // ===== GUIDE COLUMN 2 =====
-    m_GuideTextCol2.setFont(*font);
-    m_GuideTextCol2.setCharacterSize(36);
-    m_GuideTextCol2.setFillColor(DARK_TEXT);
-    m_GuideTextCol2.setOutlineColor(OUTLINE);
-    m_GuideTextCol2.setOutlineThickness(2.f);
-    m_GuideTextCol2.setString(
-        "HUONG DAN CHOI GAME\n\n"
+    std::string col2 =
+"HUONG DAN CHOI GAME \n\n"
+"DAY LA GAME DOI KHANG THEO LUOT, NGUOI CHOI DI TRUOC. \n\n"
+"CHI TIET CAC LA BAI: \n\n"
+"NHOM HIEU UNG: \n"
+"- TANG 3 DIEM THANH NO \n"
+"- QUAY JACKPOT \n"
+"- QUAY JACKPOT 2 LAN \n\n"
+"NHOM PHONG THU: \n"
+"- PHONG THU THUONG \n"
+"- PHONG THU +1 DIEM THANH NO \n"
+"- 60% NE DON \n\n"
+"NHOM GAY SAT THUONG: \n"
+"- TAN CONG THUONG \n"
+"- TAN CONG + CHOANG \n"
+"- TAN CONG PHA GIAP";
 
-        "DAY LA GAME DOI KHANG THEO LUOT,\n"
-        "NGUOI CHOI DI TRUOC.\n\n"
+m_GuideTextCol2.setString(WrapText(*font, col2, 36, columnWidth - 20));
 
-        "CHI TIET CAC LA BAI:\n\n"
+    std::string col3 =
+"QUAY JACKPOT:\n"
+"- NEU TRUNG, 5 LUOT TIEP THEO HOI DAY MAU \n"
+"- BO QUA PHAN PHAN BO CHU LUC \n"
+"- TU DONG DON 5 DIEM TAN CONG \n"
+"- LAN DAU TRUNG, DOI PHUONG BI CHOANG \n\n"
+"LUOT CUA BOSS: \n"
+"- BOSS KHONG CO LA HIEU UNG \n"
+"- THANH NO DUNG DE DUNG CHIEU \n"
+"- MOI LUOT +1 DIEM NO \n\n"
+"DO KHO: \n"
+"CHARLES: NE DON MOI 3 LUOT \n"
+"KASHIMO: DAME RAT CAO \n"
+"URAUME: BANG HOA & PHA GIAP";
 
-        "NHOM HIEU UNG:\n"
-        "- TANG 3 DIEM THANH NO II\n"
-        "- QUAY JACKPOT\n"
-        "- QUAY JACKPOT 2 LAN\n\n"
+m_GuideTextCol3.setString(WrapText(*font, col3, 36, columnWidth - 20));
 
-        "NHOM PHONG THU:\n"
-        "- PHONG THU THUONG (HIEU QUA CAO)\n"
-        "- PHONG THU +1 DIEM THANH NO\n"
-        "- 60% NE DON\n\n"
-
-        "NHOM GAY SAT THUONG:\n"
-        "- TAN CONG THUONG (DAME CAO)\n"
-        "- TAN CONG + CHOANG 1 LUOT\n"
-        "- TAN CONG PHA GIAP\n"
-    );
-
-    // ===== GUIDE COLUMN 3 =====
-    m_GuideTextCol3.setFont(*font);
-    m_GuideTextCol3.setCharacterSize(36);
-    m_GuideTextCol3.setFillColor(DARK_TEXT);
-    m_GuideTextCol3.setOutlineColor(OUTLINE);
-    m_GuideTextCol3.setOutlineThickness(2.f);
-    m_GuideTextCol3.setString(
-        "\nQUAY JACKPOT:\n"
-        "- NEU TRUNG, 5 LUOT TIEP THEO\n"
-        "  HAKARI HOI 100% MAU\n"
-        "- BO QUA PHAN PHAN BO CHU LUC\n"
-        "- TU DONG DON 5 DIEM TAN CONG\n"
-        "- LAN DAU TRUNG JACKPOT,\n"
-        "  DOI PHUONG BI CHOANG 1 LUOT\n\n"
-
-        "LUOT CUA BOSS:\n"
-        "- BOSS CO PHAN 1 VA 2 TUONG TU\n"
-        "- KHONG CO LA NHOM HIEU UNG\n"
-        "- THANH NO DUNG DE DUNG CHIEU\n"
-        "- MOI LUOT TU DONG +1 DIEM NO\n"
-        "- DUNG CHIEU SE RESET VE 0\n\n"
-
-        "DO KHO DE:\n"
-        "CHARLES BERNARD\n"
-        "- NOI TAI: NE DON MOI 3 LUOT\n"
-        "- KHONG CO CHIEU DAC BIET\n\n"
-
-        "DO KHO TRUNG BINH:\n"
-        "KASHIMO\n"
-        "- NOI TAI: DAME VA THU RAT CAO\n"
-        "- CHIEU: SAT THUONG SET MANH\n"
-        "- DAY NO SAU MOI 4 LUOT\n\n"
-
-        "DO KHO KHO:\n"
-        "URAUME\n"
-        "- NOI TAI: BANG NGUNG CHU PHAP\n"
-        "- JACKPOT KHONG HOI DAY MAU\n"
-        "- TRU 40% PHONG THU CUA HAKARI\n"
-        "- CHIEU: TAO COT BANG CHAN TAN CONG\n"
-        "- DAY NO SAU MOI 2 LUOT\n\n"
-    );
 
     // ===== FOOTER (NOI BAT) =====
     m_GuideFooter.setFont(*font);
-    m_GuideFooter.setCharacterSize(36);
+    m_GuideFooter.setCharacterSize(32);
     m_GuideFooter.setFillColor(sf::Color(120, 30, 30));
     m_GuideFooter.setOutlineColor(sf::Color::White);
-    m_GuideFooter.setOutlineThickness(2.f);
+    m_GuideFooter.setOutlineThickness(3.f);
     m_GuideFooter.setString(
         "CHUC BAN CHOI GAME VUI VE!\n"
         "~AN ESC DE QUAY LAI MENU CHINH!~"
     );
 
     // ===== POSITION & LAYOUT =====
-    m_TextOffsetY = 100.f;
+    m_TextOffsetY = 120.f;
 
     float marginX = 80.f;
     float usableWidth = W - marginX * 2;

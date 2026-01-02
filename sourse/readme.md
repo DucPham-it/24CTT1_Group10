@@ -188,8 +188,8 @@ Tại Folder tổng thực hiện lệnh:
 ```Bash
 g++ -std=gnu++23 `
  (Get-ChildItem -Recurse -Filter *.cpp | % FullName) `
- -I./SFML/include `
- -L./SFML/lib `
+ -I./sourse/SFML/include `
+ -L./sourse/SFML/lib `
  -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio `
  -o ./release/ToaSatBatDo.exe
 ```

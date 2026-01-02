@@ -23,5 +23,10 @@ public:
 
 private:
 	vector<Sprite> m_ListSprite;
-	unsigned int m_MovedIntoButton;
+
+	bool isMovedIntoButton(unsigned int x, unsigned int y);
+
+	unsigned int m_PositionMouseX, m_PositionMouseY;
+
+	bool m_IsMoveIntoButton;
 };

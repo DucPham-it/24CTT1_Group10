@@ -7,9 +7,10 @@
 // CTOR / DTOR
 // =======================
 StateModeGame::StateModeGame()
-    : m_MovedIntoButton(0)
 {
-    m_ListSprite.resize(5);
+    m_PositionMouseX = m_PositionMouseY = 0;
+    m_IsMoveIntoButton = false;
+    m_ListSprite.resize(7);
 }
 
 StateModeGame::~StateModeGame() {}
@@ -17,6 +18,19 @@ StateModeGame::~StateModeGame() {}
 void StateModeGame::Exit() {}
 void StateModeGame::Pause() {}
 void StateModeGame::Resume() {}
+
+bool StateModeGame::isMovedIntoButton(unsigned int x, unsigned int y)
+{
+    for (size_t i = 5; i < 7; i++) { 
+        if (m_ListSprite[i].getGlobalBounds().contains(
+            static_cast<float>(x),
+            static_cast<float>(y)))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 // =======================
 // INIT
@@ -28,7 +42,9 @@ void StateModeGame::Init()
         "title-choosemode.png",  
         "button-wHuman.png",     
         "button-wAI.png",       
-        "ui.png"                
+        "ui.png",
+        "hoveredbutton-wHuman.png",
+        "hoveredbutton-wAI.png"             
     };
 
     vector<Vector2f> pos = {
@@ -36,7 +52,9 @@ void StateModeGame::Init()
         {420.f * WM_GI->getScaleX(), 120.f * WM_GI->getScaleY()},
         {380.f * WM_GI->getScaleX(), 280.f * WM_GI->getScaleY()},
         {700.f * WM_GI->getScaleX(), 280.f * WM_GI->getScaleY()},
-        {320.f * WM_GI->getScaleX(), 50.f * WM_GI->getScaleY()}
+        {320.f * WM_GI->getScaleX(), 50.f * WM_GI->getScaleY()},
+        {380.f * WM_GI->getScaleX(), 280.f * WM_GI->getScaleY()},
+        {700.f * WM_GI->getScaleX(), 280.f * WM_GI->getScaleY()}
     };
 
     vector<Vector2f> scale = {
@@ -45,7 +63,9 @@ void StateModeGame::Init()
         {3.5f * WM_GI->getScaleX(), 3.5f * WM_GI->getScaleY()},
         {3.5f * WM_GI->getScaleX(), 3.5f * WM_GI->getScaleY()},
         {470.f * WM_GI->getScaleX() / 187.f,
-         WM_GI->getHeightScreen() / 490.f}
+         WM_GI->getHeightScreen() / 490.f},
+        {3.5f * WM_GI->getScaleX(), 3.5f * WM_GI->getScaleY()},
+        {3.5f * WM_GI->getScaleX(), 3.5f * WM_GI->getScaleY()}
     };
 
     for (size_t i = 0; i < m_ListSprite.size(); ++i) {
@@ -68,6 +88,21 @@ void StateModeGame::Handle(Event event)
         return;
     }
 
+        if (event.type == Event::MouseMoved) {
+        m_PositionMouseX = event.mouseMove.x;
+        m_PositionMouseY = event.mouseMove.y;
+
+        if (!m_IsMoveIntoButton &&
+            isMovedIntoButton(m_PositionMouseX, m_PositionMouseY))
+        {
+            RM_GI->getMovedIntoSpriteSound()->play();
+            m_IsMoveIntoButton = true;
+        }
+        else if (!isMovedIntoButton(m_PositionMouseX, m_PositionMouseY)) {
+            m_IsMoveIntoButton = false;
+        }
+    }
+
     if (event.type == Event::MouseButtonPressed &&
         event.mouseButton.button == Mouse::Left)
     {
@@ -78,11 +113,13 @@ void StateModeGame::Handle(Event event)
 
         // Player vs Player
         if (m_ListSprite[2].getGlobalBounds().contains(mouse)) {
+            RM_GI->getClickSound()->play();
             StateNewGame::setAIMode(false);
             StateManager::getInstance()->ChangeState(4);
         }
         // Player vs AI
         else if (m_ListSprite[3].getGlobalBounds().contains(mouse)) {
+            RM_GI->getClickSound()->play();
             StateNewGame::setAIMode(true);
             StateManager::getInstance()->ChangeState(4);
         }
@@ -104,6 +141,20 @@ void StateModeGame::Render(RenderWindow* window)
     window->draw(m_ListSprite[1]);
 
     // 4. Buttons
-    window->draw(m_ListSprite[2]);
-    window->draw(m_ListSprite[3]);
+    if (m_ListSprite[2].getGlobalBounds().contains(static_cast<float>(m_PositionMouseX),
+                static_cast<float>(m_PositionMouseY))){
+        window->draw(m_ListSprite[5]);
+    }
+    else{
+        window->draw(m_ListSprite[2]);
+    }
+
+    if (m_ListSprite[3].getGlobalBounds().contains(static_cast<float>(m_PositionMouseX),
+                static_cast<float>(m_PositionMouseY))){
+        window->draw(m_ListSprite[6]);
+    }
+    else{
+        window->draw(m_ListSprite[3]);
+    }
+    
 }

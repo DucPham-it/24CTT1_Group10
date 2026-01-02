@@ -15,11 +15,12 @@ public:
     void Init() override;
     void Handle(Event event) override;
     void Render(RenderWindow* window) override;
-
+    
     void Pause() override;
     void Resume() override;
     void Exit() override;
 
+    static string WrapText(sf::Font& font, const std::string& str, unsigned size, float maxWidth);
 private:
 
     Sprite m_Background;
@@ -32,6 +33,9 @@ private:
 
     Text m_GuideFooter;
 
+    float marginX;
+    float usableWidth;
+    float columnWidth;
 
     float m_TextOffsetY;  
     float m_ScrollSpeed;   

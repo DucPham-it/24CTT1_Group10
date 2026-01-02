@@ -120,6 +120,7 @@ private:
         int index;
         bool selected;
         Sprite sprite;
+        Vector2f basePos;
     };
 
     vector<unique_ptr<Card>> _hand;
@@ -141,7 +142,7 @@ private:
     deque<StatusMessage> _statusQueue;
     sf::Clock _statusClock;      
     float _lastStatusTime = 0.f;
-    const float STATUS_DURATION = 5.f;
+    const float STATUS_DURATION = 6.f;
 
     // =========================
     // HUD / UI
