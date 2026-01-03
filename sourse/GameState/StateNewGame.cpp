@@ -1,4 +1,4 @@
-﻿#include "StateNewGame.h"
+#include "StateNewGame.h"
 
 #include "../GameManager/StateManager.h"
 #include "../GameManager/ResourceManager.h"
@@ -261,7 +261,7 @@ void StateNewGame::Init()
     handOrigin = { W * 0.18f, H * 0.7f };
     handSpacing = (W * 0.7f) / 6.f;
 
-    btnConfirmCards.setSize({ 250,40 });
+    btnConfirmCards.setSize({ 250,40 });    
     btnConfirmCards.setPosition(W / 2.2f, H * 0.9f);
     btnConfirmCards.setFillColor(Color(80, 160, 80));
 
@@ -415,6 +415,11 @@ void StateNewGame::Handle(Event event)
     }
 
     if (_phase == Phase::None) {
+        if (_waitForNextTurn)
+        {
+            _waitForNextTurn = false;
+            return;   // chờ 1 frame trước khi bot đi
+        }
         _current->resetTurnState();
 
         if (_scheduler.hasEffect(_current, EffectTag::Stun)) {
@@ -581,6 +586,7 @@ void StateNewGame::endTurn() {
     swapTurns();
     _picked.clear();
     _phase = Phase::None;
+    _waitForNextTurn = true;   // ⭐ thêm biến này
 }
 
 void StateNewGame::processEndOfTurn() {
@@ -622,6 +628,9 @@ void StateNewGame::handleBotTurn()
 void StateNewGame::pushStatusText(const std::string& text)
 {
     _statusQueue.push_back({ text, STATUS_DURATION });
+
+    _statusClock.restart();      // ⭐ reset thời gian
+    _lastStatusTime = 0.f;       // ⭐ reset delta
 
     // giới hạn số dòng 
     const size_t MAX_STATUS = 10;
