@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "State.h"
 
@@ -106,12 +106,21 @@ private:
         void clear();
     };
 
+    Text txtAtkLabel;
+    Text txtDefLabel;
+    Text txtJpLabel;
+
+    Text txtEnergyHint;
+
     InputBox atkBox;
     InputBox defBox;
     InputBox jpBox;
-
+    
     RectangleShape btnConfirmEnergy;
     Text txtConfirmEnergy;
+    int _energyFocus = 0;
+
+    void updateEnergyFocus();
 
     // =========================
     // CARD PICK UI
