@@ -17,7 +17,7 @@ ReduceDamageCard::ReduceDamageCard(float ratio)
 void ReduceDamageCard::execute(Player& self, Player&, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-        state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     state.getScheduler().addEffect(
         &self,
         make_unique<DamageReductionEffect>(1, _reductionRatio, TickTrigger::endOfTurnOpponent),
@@ -28,4 +28,8 @@ void ReduceDamageCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void ReduceDamageCard::printDescription() const {
     cout << format("- Giam {}% sat thuong nhan vao.", _reductionRatio * 100) << endl;
+}
+
+unique_ptr<Card> ReduceDamageCard::clone() const {
+    return std::make_unique<ReduceDamageCard>(*this);
 }

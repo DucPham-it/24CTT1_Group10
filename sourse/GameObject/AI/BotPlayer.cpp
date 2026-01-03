@@ -19,8 +19,8 @@ void BotPlayer::onTurnStart() {
 
 std::vector<Card*> BotPlayer::pickCards(const std::vector<std::unique_ptr<Card>>& hand) {
     std::vector<Card*> selected;
-    if (hand.size() >= 4) {
-        for (int i = 0; i < 4; ++i)
+    if (hand.size() >= 3) {
+        for (int i = 0; i < 3; ++i)
             selected.push_back(hand[i].get());
     }
     return selected;

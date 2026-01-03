@@ -311,6 +311,44 @@ SoundManager::instance().playMusic(
 }
 
 // =====================================================
+// SAVE CARD
+// =====================================================
+void StateNewGame::savePlayedCards(Player* owner,
+                                   std::vector<int>& picked)
+{
+    auto& list = (owner == _player1.get()) ? _playedP1 : _playedP2;
+    auto& ui   = (owner == _player1.get()) ? _playedP1UI : _playedP2UI;
+
+    list.clear();
+    ui.clear();
+
+    for (int idx : picked) {
+        // copy card
+        list.push_back(_hand[idx]->clone()); 
+
+
+        Sprite s;
+        if (auto tex = RM_GI->getTexture(_hand[idx]->getIconPath())) {
+            s.setTexture(*tex);
+            s.setScale(0.45f, 0.45f);
+            ui.push_back(s);
+        }
+    }
+
+    txtPlayedP1.setFont(*_font);
+    txtPlayedP1.setCharacterSize(22);
+    txtPlayedP1.setFillColor(sf::Color(235,235,235));
+    txtPlayedP1.setString("PLAYER 1");
+
+    txtPlayedP2.setFont(*_font);
+    txtPlayedP2.setCharacterSize(22);
+    txtPlayedP2.setFillColor(sf::Color(235,235,235));
+    txtPlayedP2.setString(s_IsAIMode ? _player2->getName() : "PLAYER 2");
+
+
+}
+
+// =====================================================
 // BOT SELECT
 // =====================================================
 void StateNewGame::handleBotSelect(Vector2f mouse)
@@ -562,6 +600,7 @@ void StateNewGame::handleCardConfirm()
         return;
     }
 
+    savePlayedCards(_current, _picked);
 
     for (int idx : _picked)
         _hand[idx]->execute(*_current, *_opponent, *this);
@@ -608,12 +647,26 @@ void StateNewGame::processEndOfTurn() {
 void StateNewGame::handleBotTurn()
 {
     // BOT 
+    _playedP2.clear();
+    _playedP2UI.clear();
     _current->allocateCursedEnergy();
 
     // BOT 
     this->pushStatusText(format("AI TURN"));
 
     auto cards = _current->pickCards(_hand);
+
+    // ===== MAKE CLONE INDEX FOR BOT =====
+    std::vector<int> botPicked;
+    for (auto c : cards) {
+        for (int i = 0; i < _hand.size(); ++i) {
+            if (_hand[i].get() == c) {
+                botPicked.push_back(i);
+                break;
+            }
+        }
+    }
+    savePlayedCards(_current, botPicked);
 
     for (auto c : cards)
         c->execute(*_current, *_opponent, *this);
@@ -712,6 +765,50 @@ void StateNewGame::Render(RenderWindow* window)
         }
         return;
     }
+
+    float centerY = WM_GI->getHeightScreen() * 0.35f;
+    float spacing = 60.f;
+
+    // ===== P1 LAST CARD =====
+    float startX_P1 = WM_GI->getWidthScreen() * 0.15f;
+
+    for (int i = 0; i < _playedP1UI.size(); ++i) {
+        _playedP1UI[i].setPosition(
+        startX_P1 - i * spacing,
+        centerY
+    );
+    window->draw(_playedP1UI[i]);
+    }
+
+    // ===== P2 LAST CARD =====
+    float startX_P2 = WM_GI->getWidthScreen() * 0.8f;
+
+    for (int i = 0; i < _playedP2UI.size(); ++i) {
+        _playedP2UI[i].setPosition(
+        startX_P2 + i * spacing,
+        centerY
+    );
+    window->draw(_playedP2UI[i]);
+    }
+
+    // ===== LABEL P1 =====
+    if (!_playedP1UI.empty()) {
+        txtPlayedP1.setPosition(
+            startX_P1 - 10.f,
+            centerY - 100.f
+        );
+        window->draw(txtPlayedP1);
+    }
+
+    // ===== LABEL P2 =====
+    if (!_playedP2UI.empty()) {
+        txtPlayedP2.setPosition(
+            startX_P2 + 10.f,
+            centerY - 100.f
+        );
+        window->draw(txtPlayedP2);
+    }
+
 
     txtTurn.setString(
         "TURN " + to_string(_turnCount) +

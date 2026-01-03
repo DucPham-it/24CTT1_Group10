@@ -11,4 +11,5 @@ public:
     DoubleJackpotRollCard();
     void execute(Player& self, Player& target, StateNewGame& state) override;
     void printDescription() const override;
+    unique_ptr<Card> clone() const override;
 };

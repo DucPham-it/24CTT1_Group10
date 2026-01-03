@@ -18,7 +18,7 @@ PierceAttackCard::PierceAttackCard(int dmg)
 void PierceAttackCard::execute(Player& self, Player& target, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     cout << "Damage duoc tru thang vao Hp cua doi thu\n";
 
     auto dmg = make_unique<PiercingDamage>();
@@ -29,4 +29,8 @@ void PierceAttackCard::execute(Player& self, Player& target, StateNewGame& state
 
 void PierceAttackCard::printDescription() const {
     cout << "- Tan cong xuyen giap.\n";
+}
+
+unique_ptr<Card> PierceAttackCard::clone() const {
+    return std::make_unique<PierceAttackCard>(*this);
 }

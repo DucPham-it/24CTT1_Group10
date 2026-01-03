@@ -146,6 +146,7 @@ void StateSetting::setVolumn() {
 	switch (m_KnobDragging) {
 	case 6:
 		RM_GI->setBGMVolume(volume);
+		SoundManager::instance().setMasterVolume(volume);
 		break;
 	case 9:
 		RM_GI->setWMVolume(volume);

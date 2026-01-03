@@ -15,10 +15,14 @@ ShieldCard::ShieldCard(int shield)
 void ShieldCard::execute(Player& self, Player&, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     self.addShield(_shieldAmount);
 }
 
 void ShieldCard::printDescription() const {
     cout << format("- Tang {} shield.", _shieldAmount) << endl;
+}
+
+unique_ptr<Card> ShieldCard::clone() const {
+    return std::make_unique<ShieldCard>(*this);
 }

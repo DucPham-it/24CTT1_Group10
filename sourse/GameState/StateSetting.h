@@ -1,5 +1,7 @@
 #pragma once
 #include "../GameManager/StateManager.h"
+#include "../GameManager/SoundManager.h"
+
 #include <vector>
 #include <algorithm>
 

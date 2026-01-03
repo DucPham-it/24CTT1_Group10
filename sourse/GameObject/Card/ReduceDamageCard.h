@@ -13,4 +13,5 @@ public:
     ReduceDamageCard(float ratio = GameConfig::instance().getFloat(ConfigKey::CARD_DAMAGE_REDUCTION_RATIO));
     void execute(Player& self, Player& target, StateNewGame& state) override;
     void printDescription() const override;
+    unique_ptr<Card> clone() const override;
 };

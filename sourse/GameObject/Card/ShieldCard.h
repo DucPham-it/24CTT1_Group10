@@ -13,4 +13,5 @@ public:
     ShieldCard(int shield = GameConfig::instance().getInt(ConfigKey::CARD_SHIELD_GAIN));
     void execute(Player& self, Player& target, StateNewGame& state) override;
     void printDescription() const override;
+    unique_ptr<Card> clone() const override;
 };

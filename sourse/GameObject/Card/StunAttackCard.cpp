@@ -17,7 +17,7 @@ StunAttackCard::StunAttackCard(int dmg)
 void StunAttackCard::execute(Player& self, Player& target, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     cout << "!! Doi thu bi CHOANG trong 1 luot toi!\n";
 
     auto dmg = make_unique<NormalDamage>();
@@ -35,4 +35,8 @@ void StunAttackCard::execute(Player& self, Player& target, StateNewGame& state) 
 
 void StunAttackCard::printDescription() const {
     cout << format("- {} : {} dame + choang 1 luot.", _name, _damageAmount) << endl;
+}
+
+unique_ptr<Card> StunAttackCard::clone() const {
+    return std::make_unique<StunAttackCard>(*this);
 }

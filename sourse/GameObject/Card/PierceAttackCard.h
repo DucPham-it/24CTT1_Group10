@@ -13,4 +13,5 @@ public:
     PierceAttackCard(int dmg = GameConfig::instance().getInt(ConfigKey::CARD_DAMAGE_PIERCE));
     void execute(Player& self, Player& target, StateNewGame& state) override;
     void printDescription() const override;
+    unique_ptr<Card> clone() const override;
 };

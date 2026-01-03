@@ -17,10 +17,14 @@ void DoubleJackpotRollCard::execute(Player& self, Player& target, StateNewGame& 
 
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     state.getBattle()->rollJackpot(self, target, 2);
 }
 
 void DoubleJackpotRollCard::printDescription() const {
     cout << "- Quay Jackpot 2 lan.\n";
+}
+
+unique_ptr<Card> DoubleJackpotRollCard::clone() const {
+    return std::make_unique<DoubleJackpotRollCard>(*this);
 }

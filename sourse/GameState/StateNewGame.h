@@ -144,6 +144,20 @@ private:
     float _lastStatusTime = 0.f;
     const float STATUS_DURATION = 6.f;
 
+    // =======================
+    // PLAYED CARDS (LAST TURN)
+    // =======================
+    vector<unique_ptr<Card>> _playedP1;
+    vector<unique_ptr<Card>> _playedP2;
+
+    vector<Sprite> _playedP1UI;
+    vector<Sprite> _playedP2UI;
+
+    Text txtPlayedP1;
+    Text txtPlayedP2;
+
+    void savePlayedCards(Player* owner, vector<int>& picked);
+
     // =========================
     // HUD / UI
     // =========================
@@ -194,4 +208,5 @@ private:
     void endTurn();
     void processEndOfTurn();
 
+    
 };

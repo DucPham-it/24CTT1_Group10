@@ -12,5 +12,6 @@ private:
 public:
     DamageCard(int dmg = GameConfig::instance().getInt(ConfigKey::CARD_DAMAGE_NORMAL));
     void execute(Player& self, Player& target, StateNewGame& state) override;
-    void printDescription() const override;
+    void printDescription() const override; 
+    unique_ptr<Card> clone() const override;
 };
