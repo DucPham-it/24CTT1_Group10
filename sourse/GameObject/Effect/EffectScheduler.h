@@ -7,70 +7,20 @@ class Player;
 
 class EffectScheduler {
 private:
-    vector<ScheduledEffect> _scheduledEffects;
-public:
-    vector<ScheduledEffect>& getScheduledEffects() {
-        return _scheduledEffects;
-    }
+    std::vector<ScheduledEffect> _scheduledEffects;
 
-    void setScheduledEffects(ScheduledEffect scheduledEffect) {
-        _scheduledEffects.push_back(move(scheduledEffect));
-    }
 public:
-    void addEffect(Player* target, unique_ptr<StatusEffect> eff, TriggerType trigger, int duration) {
-        //_scheduledEffects.push_back({target, move(eff), trigger, duration});
-        setScheduledEffects({target, move(eff), trigger, duration});
-    }
+    std::vector<ScheduledEffect>& getScheduledEffects();
+    void setScheduledEffects(ScheduledEffect scheduledEffect);
+
+public:
+    void addEffect(Player* target, std::unique_ptr<StatusEffect> eff, TriggerType trigger, int duration);
 
     // gọi khi event xảy ra
-    void processTrigger(TriggerType trigger, Player& currentPlayer, Damage* damage = nullptr) {
-        for (auto it = _scheduledEffects.begin(); it != _scheduledEffects.end();) {
-            if (it->trigger == trigger && it->target == &currentPlayer) {
-                it->effect->onApply(*it->target, damage); // effect tự định nghĩa hành vi
-            }
-            ++it;
-        }
-    }
+    void processTrigger(TriggerType trigger, Player& currentPlayer, Damage* damage = nullptr);
 
-    bool hasEffect(Player* target, EffectTag tag) {
-        for (const auto& se : _scheduledEffects) {
-            if (se.target == target && se.effect->hasTag(tag)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    bool hasEffect(Player* target, EffectTag tag);
 
-    void tickPlayer(Player& p) {
-        for (auto it = _scheduledEffects.begin(); it != _scheduledEffects.end(); ) {
-            if (it->target == &p) {
-                it->effect->tick();
-
-                if (it->effect->isExpired()) {
-                    it = _scheduledEffects.erase(it);
-                    continue;
-                }
-            }
-            ++it;
-        }
-    }
-
-    void tickByTrigger(TickTrigger trigger, Player& target) {
-        for (auto it = _scheduledEffects.begin(); it != _scheduledEffects.end();) {
-            // Kiểm tra trigger và target
-            if (it->effect->getTickTrigger() == trigger && it->target == &target) {
-                it->effect->tick();
-            }
-
-            // Xóa nếu hết duration
-            if (it->effect->isExpired()) {
-                it = _scheduledEffects.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-
-
-
+    void tickPlayer(Player& p);
+    void tickByTrigger(TickTrigger trigger, Player& target);
 };

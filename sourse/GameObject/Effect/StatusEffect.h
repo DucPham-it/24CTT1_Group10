@@ -1,10 +1,13 @@
 #pragma once
-#include <iostream>
+
 #include "../Damage/Damage.h"
+#include "../LogService/BattleLogService.h"
+#include <format>
+#include <iostream>
+
+class Player;
 
 using namespace std;
-
-class Player; 
 
 enum class TickTrigger {
     none,
@@ -22,33 +25,25 @@ enum class EffectTag {
     CriticalStrike
 };
 
+// ===== CLASS =====
 class StatusEffect {
 protected:
     int _duration;
     TickTrigger _tickTrigger; // thời điểm giảm duration
 
 public:
-    explicit StatusEffect(int turns, TickTrigger tickAt)
-        : _duration(turns), _tickTrigger(tickAt) {}
+    explicit StatusEffect(int turns, TickTrigger tickAt);
+    virtual ~StatusEffect();
 
-    virtual ~StatusEffect() = default;
-
-public :
-    TickTrigger getTickTrigger() const {
-        return _tickTrigger;
-    }
+    // ===== GET =====
+    TickTrigger getTickTrigger() const;
 
     // ===== QUERY =====
-    virtual bool hasTag(EffectTag) { return false; }
+    virtual bool hasTag(EffectTag);
 
     // ===== LIFECYCLE =====
-    virtual void onApply(Player&, Damage* dmg = nullptr) {}
+    virtual void onApply(Player&, Damage* dmg = nullptr);
 
-    virtual void tick() {
-        _duration--;
-    }
-
-    bool isExpired() const {
-        return _duration <= 0;
-    }
+    virtual void tick();
+    bool isExpired() const;
 };

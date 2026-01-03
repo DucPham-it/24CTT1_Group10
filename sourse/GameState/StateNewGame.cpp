@@ -8,6 +8,7 @@
 #include "../GameObject/NewGameConfig/GameConfig.h"
 #include "../GameObject/BattleSystem/BattleSystem.h"
 #include "../GameObject/Card/Card.h"
+#include "../GameObject/LogService/BattleLogService.h"
 
 // ===== AI =====
 #include "../GameObject/AI/BotPlayer.h"
@@ -45,6 +46,7 @@ StateNewGame::StateNewGame()
     _font(nullptr)
 {
     _battle = new BattleSystem(_scheduler);
+    BattleLogService::bind(this); // class dùng để ghi log
 }
 
 StateNewGame::~StateNewGame() {
