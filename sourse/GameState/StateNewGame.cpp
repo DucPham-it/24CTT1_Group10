@@ -1,4 +1,4 @@
-﻿#include "StateNewGame.h"
+#include "StateNewGame.h"
 
 #include "../GameManager/StateManager.h"
 #include "../GameManager/ResourceManager.h"
@@ -8,7 +8,6 @@
 #include "../GameObject/NewGameConfig/GameConfig.h"
 #include "../GameObject/BattleSystem/BattleSystem.h"
 #include "../GameObject/Card/Card.h"
-#include "../GameObject/LogService/BattleLogService.h"
 
 // ===== AI =====
 #include "../GameObject/AI/BotPlayer.h"
@@ -46,7 +45,6 @@ StateNewGame::StateNewGame()
     _font(nullptr)
 {
     _battle = new BattleSystem(_scheduler);
-    BattleLogService::bind(this); // class dùng để ghi log
 }
 
 StateNewGame::~StateNewGame() {
@@ -527,8 +525,13 @@ void StateNewGame::Handle(Event event)
         // PLAYER TURN
         // =======================
         if (!_scheduler.hasEffect(_current, EffectTag::Jackpot)) {
-            atkBox.clear(); defBox.clear(); jpBox.clear();
-            _energyFocus = 0;
+            atkBox.clear(); 
+            defBox.clear(); 
+            jpBox.clear();
+
+
+             _energyFocus = 0;
+            
             _phase = Phase::InputEnergy;
         }
         else {
@@ -576,9 +579,14 @@ void StateNewGame::Handle(Event event)
             handleEnergyConfirm();
 
         if (_phase == Phase::PickCards) {
-            handleCardClick(mouse);
-            if (btnConfirmCards.getGlobalBounds().contains(mouse))
+            // Ưu tiên nút Confirm trước
+            if (btnConfirmCards.getGlobalBounds().contains(mouse)) {
                 handleCardConfirm();
+                return; // chặn không cho click xuyên xuống card
+            }
+
+            // Chỉ click card nếu KHÔNG bấm nút
+            handleCardClick(mouse);
         }
     }
 }
