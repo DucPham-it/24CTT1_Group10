@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../Damage/Damage.h"
-#include "../LogService/BattleLogService.h"
+#include "../LogService/BattleEventQueue.h"
+
 #include <format>
 #include <iostream>
 

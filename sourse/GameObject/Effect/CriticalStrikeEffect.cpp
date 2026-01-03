@@ -14,7 +14,7 @@ void CriticalStrikeEffect::onApply(Player&, Damage* damage) {
                  << _multiplier << " damage\n";
 
             // thêm log để hiển thị ra giao diện 
-            BattleLogService::push(format("[CARD CRIT] Sat thuong chi mang ({} %). Ban duoc x{} damage\n",
+            BattleEventQueue::instance().push(format("[CARD CRIT] Sat thuong chi mang ({} %). Ban duoc x{} damage\n",
                 _chance * 100, _multiplier
             ));
         }

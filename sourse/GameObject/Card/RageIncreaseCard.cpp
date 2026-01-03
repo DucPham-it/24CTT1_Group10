@@ -23,6 +23,7 @@ void RageIncreaseCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void RageIncreaseCard::printDescription() const {
     cout << format("- Tang {} diem no II.", _rageIncrease) << endl;
+    BattleEventQueue::instance().push(format("- Tang {} diem no II.", _rageIncrease));
 }
 
 unique_ptr<Card> RageIncreaseCard::clone() const {

@@ -29,6 +29,7 @@ void PierceAttackCard::execute(Player& self, Player& target, StateNewGame& state
 
 void PierceAttackCard::printDescription() const {
     cout << "- Tan cong xuyen giap.\n";
+    BattleEventQueue::instance().push(format("- Tan cong xuyen giap."));
 }
 
 unique_ptr<Card> PierceAttackCard::clone() const {

@@ -28,6 +28,7 @@ void ReduceDamageCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void ReduceDamageCard::printDescription() const {
     cout << format("- Giam {}% sat thuong nhan vao.", _reductionRatio * 100) << endl;
+    BattleEventQueue::instance().push(format("- Giam {}% sat thuong nhan vao.", _reductionRatio * 100));
 }
 
 unique_ptr<Card> ReduceDamageCard::clone() const {

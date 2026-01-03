@@ -11,7 +11,7 @@ void DamageReductionEffect::onApply(Player&, Damage* damage) {
         cout << "[CARD REDUCE DAMAGE] Doi thu giam " << _ratio * 100 << "% sat thuong\n";
 
         // thêm log để hiển thị ra giao diện 
-        BattleLogService::push(format("[REDUCE DAMAGE] Doi thu giam {}% sat thuong\n",
+        BattleEventQueue::instance().push(format("[REDUCE DAMAGE] Doi thu giam {}% sat thuong\n",
             _ratio * 100
         ));
     }
