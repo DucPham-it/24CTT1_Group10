@@ -26,7 +26,6 @@ void DamageCard::execute(Player& self, Player& target, StateNewGame& state) {
 
 void DamageCard::printDescription() const {
     cout << format("- {} : Gay {} sat thuong co ban.", _name, _damageAmount) << endl;
-    BattleEventQueue::instance().push(format("- {} : Gay {} sat thuong co ban.", _name, _damageAmount));
 }
 
 unique_ptr<Card> DamageCard::clone() const {

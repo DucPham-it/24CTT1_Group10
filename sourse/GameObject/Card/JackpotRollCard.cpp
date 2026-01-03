@@ -22,7 +22,6 @@ void JackpotRollCard::execute(Player& self, Player& target, StateNewGame& state)
 
 void JackpotRollCard::printDescription() const {
     cout << "- Quay Jackpot 1 lan.\n";
-    BattleEventQueue::instance().push(format("- Quay Jackpot 1 lan."));
 }
 
 unique_ptr<Card> JackpotRollCard::clone() const {

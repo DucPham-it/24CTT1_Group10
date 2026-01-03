@@ -1,7 +1,6 @@
 #pragma once
 
 #include "StatusEffect.h"
-
 using namespace std;
 class StunEffect : public StatusEffect {
 public:

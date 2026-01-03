@@ -28,7 +28,6 @@ void DodgeCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void DodgeCard::printDescription() const {
     cout << format("- {}% ne don.", _dodgeChance * 100) << endl;
-    BattleEventQueue::instance().push(format("- {}% ne don.", _dodgeChance * 100));
 }
 
 unique_ptr<Card> DodgeCard::clone() const {

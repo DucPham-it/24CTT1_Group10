@@ -21,7 +21,6 @@ void ShieldCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void ShieldCard::printDescription() const {
     cout << format("- Tang {} shield.", _shieldAmount) << endl;
-    BattleEventQueue::instance().push(format("- Tang {} shield.", _shieldAmount));
 }
 
 unique_ptr<Card> ShieldCard::clone() const {

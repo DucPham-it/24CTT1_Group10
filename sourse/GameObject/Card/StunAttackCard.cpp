@@ -35,7 +35,6 @@ void StunAttackCard::execute(Player& self, Player& target, StateNewGame& state) 
 
 void StunAttackCard::printDescription() const {
     cout << format("- {} : {} dame + choang 1 luot.", _name, _damageAmount) << endl;
-    BattleEventQueue::instance().push(format("- {} : {} dame + choang 1 luot.", _name, _damageAmount));
 }
 
 unique_ptr<Card> StunAttackCard::clone() const {

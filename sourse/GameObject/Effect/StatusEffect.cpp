@@ -3,7 +3,6 @@
 StatusEffect::StatusEffect(int turns, TickTrigger tickAt)
     : _duration(turns), _tickTrigger(tickAt)
 {
-
 }
 
 StatusEffect::~StatusEffect() = default;
@@ -17,7 +16,7 @@ bool StatusEffect::hasTag(EffectTag) {
 }
 
 void StatusEffect::onApply(Player&, Damage*) {
-
+    // default: không làm gì
 }
 
 void StatusEffect::tick() {

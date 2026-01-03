@@ -47,16 +47,14 @@ public:
     BattleSystem* getBattle();
 
     // =========================
-    // TURN MESSAGE
+    // STATUS MESSAGE
     // =========================
-    struct TurnLog {
-        int turn;
-        vector<std::string> lines;
+    struct StatusMessage {
+        std::string text;
+        float lifetime;
     };
+    void pushStatusText(const std::string& text);
 
-    deque<TurnLog> _turnLogs;
-
-    void collectBattleEvents();
 private:
     // =========================
     // CORE GAME OBJECTS
@@ -90,7 +88,7 @@ private:
         None,         // bắt đầu lượt
         InputEnergy,  // nhập chú lực
         PickCards,   // chọn bài
-        BotAct,      // Lượt của bot
+        BotAct      // Lượt của bot
     };
     Phase _phase;
 
@@ -148,6 +146,12 @@ private:
     RectangleShape panelBot;
     vector<RectangleShape> botButtons;   
     vector<Text> botTexts;               
+
+    // ===== STATUS TEXT QUEUE =====
+    deque<StatusMessage> _statusQueue;
+    sf::Clock _statusClock;      
+    float _lastStatusTime = 0.f;
+    const float STATUS_DURATION = 6.f;
 
     // =======================
     // PLAYED CARDS (LAST TURN)

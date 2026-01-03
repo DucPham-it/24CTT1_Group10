@@ -12,7 +12,7 @@ void JackpotEffect::onApply(Player& p, Damage* dmg) {
         cout << "[JACKPOT] Cooldown (no buff)\n";
 
         // thêm log để hiển thị ra giao diện 
-         BattleEventQueue::instance().push("[JACKPOT] Cooldown (no buff)\n");
+        BattleLogService::push("[JACKPOT] Cooldown (no buff)\n");
         return;
     }
 
@@ -25,7 +25,7 @@ void JackpotEffect::onApply(Player& p, Damage* dmg) {
             cout << "[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP!\n";
 
             // thêm log để hiển thị ra giao diện 
-             BattleEventQueue::instance().push("[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP!\n");
+            BattleLogService::push("[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP!\n");
 
             int newHp = min(Player::MAX_HP, p.getHp() + 500);
             p.setHp(newHp);
@@ -33,7 +33,7 @@ void JackpotEffect::onApply(Player& p, Damage* dmg) {
             cout << "Ban duoc hoi day HP trong luot nay\n";
 
             // thêm log để hiển thị ra giao diện 
-             BattleEventQueue::instance().push("Ban duoc hoi day HP trong luot nay\n");
+            BattleLogService::push("Ban duoc hoi day HP trong luot nay\n");
 
             p.setHp(Player::MAX_HP);
         }
@@ -47,13 +47,13 @@ void JackpotEffect::onApply(Player& p, Damage* dmg) {
         cout << "[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP moi luot!\n";
 
         // thêm log để hiển thị ra giao diện 
-         BattleEventQueue::instance().push("[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP moi luot!\n");
+        BattleLogService::push("[URAUME EFFECT] Jackpot bi nguyen rua! Chi hoi 500 HP moi luot!\n");
     } else {
         p.setHp(Player::MAX_HP);
         cout << "[JACKPOT] Hoi day HP moi luot\n";
 
         // thêm log để hiển thị ra giao diện 
-         BattleEventQueue::instance().push("[JACKPOT] Hoi day HP moi luot\n");
+        BattleLogService::push("[JACKPOT] Hoi day HP moi luot\n");
     }
 
     p.setAttackEnergy(Player::MAX_CURSED_ENERGY);
@@ -62,7 +62,7 @@ void JackpotEffect::onApply(Player& p, Damage* dmg) {
     cout << "[JACKPOT] auto attack energy\n";
 
     // thêm log để hiển thị ra giao diện 
-    BattleEventQueue::instance().push("[JACKPOT] auto attack energy\n");
+    BattleLogService::push("[JACKPOT] auto attack energy\n");
 }
 
 bool JackpotEffect::hasTag(EffectTag tag) {

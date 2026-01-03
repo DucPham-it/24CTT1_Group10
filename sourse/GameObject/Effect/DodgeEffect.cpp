@@ -10,7 +10,7 @@ void DodgeEffect::onApply(Player&, Damage* damage) {
             cout << "[CARD DODGE] Doi thu ne don thanh cong!\n";
 
             // thêm log để hiển thị ra giao diện 
-            BattleEventQueue::instance().push("[CARD DODGE] Doi thu ne don thanh cong!\n");
+            BattleLogService::push("[CARD DODGE] Doi thu ne don thanh cong!\n");
 
             damage->setAmount(0);
         }

@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 #include <memory>
-#include "../LogService/BattleEventQueue.h"
 
 class StateNewGame;
 
