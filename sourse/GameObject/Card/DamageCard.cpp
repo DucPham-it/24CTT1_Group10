@@ -17,7 +17,6 @@ DamageCard::DamageCard(int dmg)
 void DamageCard::execute(Player& self, Player& target, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
 
     auto dmg = make_unique<NormalDamage>();
     dmg->setAmount(_damageAmount);
@@ -27,4 +26,8 @@ void DamageCard::execute(Player& self, Player& target, StateNewGame& state) {
 
 void DamageCard::printDescription() const {
     cout << format("- {} : Gay {} sat thuong co ban.", _name, _damageAmount) << endl;
+}
+
+unique_ptr<Card> DamageCard::clone() const {
+    return std::make_unique<DamageCard>(*this);
 }

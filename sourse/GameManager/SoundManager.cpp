@@ -1,4 +1,5 @@
 #include "SoundManager.h"
+#include <algorithm> 
 #include <iostream>
 
 SoundManager& SoundManager::instance() {
@@ -27,9 +28,21 @@ void SoundManager::playMusic(const std::string& path, bool loop) {
         return;
     }
     _music.setLoop(loop);
+    _music.setVolume(_masterVolume); 
     _music.play();
 }
 
 void SoundManager::stopMusic() {
     _music.stop();
+}
+
+//# Th�m:
+void SoundManager::setMasterVolume(float v) {
+    _masterVolume = std::clamp(v, 0.f, 100.f);
+    _sound.setVolume(_masterVolume);
+    _music.setVolume(_masterVolume);
+}
+
+float SoundManager::getMasterVolume() const {
+    return _masterVolume;
 }

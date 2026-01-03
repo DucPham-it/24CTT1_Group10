@@ -17,10 +17,14 @@ RageIncreaseCard::RageIncreaseCard(int increase)
 void RageIncreaseCard::execute(Player& self, Player&, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     self.increaseRage(_rageIncrease);
 }
 
 void RageIncreaseCard::printDescription() const {
     cout << format("- Tang {} diem no II.", _rageIncrease) << endl;
+}
+
+unique_ptr<Card> RageIncreaseCard::clone() const {
+    return std::make_unique<RageIncreaseCard>(*this);
 }

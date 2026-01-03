@@ -13,4 +13,5 @@ public:
     RageIncreaseCard(int increase = GameConfig::instance().getInt(ConfigKey::CARD_RAGE_GAIN));
     void execute(Player& self, Player& target, StateNewGame& state) override;
     void printDescription() const override;
+    unique_ptr<Card> clone() const override;
 };

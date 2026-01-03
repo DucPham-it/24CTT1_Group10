@@ -1,4 +1,4 @@
-#include "StateNewGame.h"
+﻿#include "StateNewGame.h"
 
 #include "../GameManager/StateManager.h"
 #include "../GameManager/ResourceManager.h"
@@ -233,6 +233,7 @@ void StateNewGame::Init()
     // =================================================
     // INPUT BOX (ENERGY)
     // =================================================
+    
     auto setupBox = [&](InputBox& b, float x, float y) {
         b.box.setSize({ 70, 50 });
         b.box.setPosition(x, y);
@@ -255,6 +256,35 @@ void StateNewGame::Init()
     txtConfirmEnergy.setString("CONFIRM");
     txtConfirmEnergy.setPosition(
         btnConfirmEnergy.getPosition() + Vector2f(10, 6)
+    );
+
+    // ===== ENERGY LABELS =====
+    auto setupLabel = [&](sf::Text& t, const std::string& str, float x, float y) {
+        t.setFont(*_font);
+        t.setCharacterSize(20);
+        t.setFillColor(sf::Color::White);
+        t.setString(str);
+        t.setPosition(x, y);
+    };
+
+    setupLabel(txtAtkLabel, "ATK", atkBox.box.getPosition().x + 15,
+            atkBox.box.getPosition().y - 28);
+
+    setupLabel(txtDefLabel, "DEF", defBox.box.getPosition().x + 15,
+            defBox.box.getPosition().y - 28);
+
+    setupLabel(txtJpLabel, "JP", jpBox.box.getPosition().x + 20,
+           jpBox.box.getPosition().y - 28);
+
+    // ===== ENERGY HINT =====
+    txtEnergyHint.setFont(*_font);
+    txtEnergyHint.setCharacterSize(26);
+    txtEnergyHint.setFillColor(sf::Color(220, 220, 220));
+    txtEnergyHint.setString("Point allocation, the total must be 5");
+
+    txtEnergyHint.setPosition(
+        WM_GI->getWidthScreen() / 2.f - txtEnergyHint.getLocalBounds().width / 2.f,
+        atkBox.box.getPosition().y - 70
     );
 
     // =================================================
@@ -309,6 +339,44 @@ SoundManager::instance().playMusic(
     "assets/sound/bgm/soundgame1.ogg",
     true
 );
+
+}
+
+// =====================================================
+// SAVE CARD
+// =====================================================
+void StateNewGame::savePlayedCards(Player* owner,
+                                   std::vector<int>& picked)
+{
+    auto& list = (owner == _player1.get()) ? _playedP1 : _playedP2;
+    auto& ui   = (owner == _player1.get()) ? _playedP1UI : _playedP2UI;
+
+    list.clear();
+    ui.clear();
+
+    for (int idx : picked) {
+        // copy card
+        list.push_back(_hand[idx]->clone()); 
+
+
+        Sprite s;
+        if (auto tex = RM_GI->getTexture(_hand[idx]->getIconPath())) {
+            s.setTexture(*tex);
+            s.setScale(0.45f, 0.45f);
+            ui.push_back(s);
+        }
+    }
+
+    txtPlayedP1.setFont(*_font);
+    txtPlayedP1.setCharacterSize(22);
+    txtPlayedP1.setFillColor(sf::Color(235,235,235));
+    txtPlayedP1.setString("PLAYER 1");
+
+    txtPlayedP2.setFont(*_font);
+    txtPlayedP2.setCharacterSize(22);
+    txtPlayedP2.setFillColor(sf::Color(235,235,235));
+    txtPlayedP2.setString(s_IsAIMode ? _player2->getName() : "PLAYER 2");
+
 
 }
 
@@ -420,7 +488,7 @@ void StateNewGame::Handle(Event event)
         if (_waitForNextTurn)
         {
             _waitForNextTurn = false;
-            return;   // chờ 1 frame trước khi bot đi
+            return;   
         }
         _current->resetTurnState();
 
@@ -460,13 +528,22 @@ void StateNewGame::Handle(Event event)
         // =======================
         if (!_scheduler.hasEffect(_current, EffectTag::Jackpot)) {
             atkBox.clear(); defBox.clear(); jpBox.clear();
-            atkBox.active = true;
+            _energyFocus = 0;
             _phase = Phase::InputEnergy;
         }
         else {
             _phase = Phase::PickCards;
         }
 
+    }
+
+    if (_phase == Phase::InputEnergy &&
+    event.type == sf::Event::KeyPressed &&
+    event.key.code == sf::Keyboard::Tab)
+    {
+        _energyFocus = (_energyFocus + 1) % 3;
+        updateEnergyFocus();
+        return;
     }
 
     atkBox.handleEvent(event);
@@ -487,9 +564,12 @@ void StateNewGame::Handle(Event event)
     if (event.type == Event::MouseButtonPressed) {
         Vector2f mouse(event.mouseButton.x, event.mouseButton.y);
 
-        atkBox.active = atkBox.box.getGlobalBounds().contains(mouse);
-        defBox.active = defBox.box.getGlobalBounds().contains(mouse);
-        jpBox.active = jpBox.box.getGlobalBounds().contains(mouse);
+        if (atkBox.box.getGlobalBounds().contains(mouse)) _energyFocus = 0;
+        if (defBox.box.getGlobalBounds().contains(mouse)) _energyFocus = 1;
+        if (jpBox.box.getGlobalBounds().contains(mouse))  _energyFocus = 2;
+
+        updateEnergyFocus();
+
 
         if (_phase == Phase::InputEnergy &&
             btnConfirmEnergy.getGlobalBounds().contains(mouse))
@@ -506,6 +586,22 @@ void StateNewGame::Handle(Event event)
 // =====================================================
 // ENERGY CONFIRM
 // =====================================================
+
+void StateNewGame::updateEnergyFocus()
+{
+    atkBox.active = (_energyFocus == 0);
+    defBox.active = (_energyFocus == 1);
+    jpBox.active  = (_energyFocus == 2);
+
+    atkBox.box.setOutlineThickness(atkBox.active ? 3.f : 0.f);
+    defBox.box.setOutlineThickness(defBox.active ? 3.f : 0.f);
+    jpBox.box.setOutlineThickness(jpBox.active ? 3.f : 0.f);
+
+    atkBox.box.setOutlineColor(sf::Color::Cyan);
+    defBox.box.setOutlineColor(sf::Color::Cyan);
+    jpBox.box.setOutlineColor(sf::Color::Cyan);
+}
+
 void StateNewGame::handleEnergyConfirm()
 {
     int atk = atkBox.getInt();
@@ -564,6 +660,7 @@ void StateNewGame::handleCardConfirm()
         return;
     }
 
+    savePlayedCards(_current, _picked);
 
     for (int idx : _picked)
         _hand[idx]->execute(*_current, *_opponent, *this);
@@ -588,7 +685,7 @@ void StateNewGame::endTurn() {
     swapTurns();
     _picked.clear();
     _phase = Phase::None;
-    _waitForNextTurn = true;   // ⭐ thêm biến này
+    _waitForNextTurn = true;  
 }
 
 void StateNewGame::processEndOfTurn() {
@@ -610,12 +707,26 @@ void StateNewGame::processEndOfTurn() {
 void StateNewGame::handleBotTurn()
 {
     // BOT 
+    _playedP2.clear();
+    _playedP2UI.clear();
     _current->allocateCursedEnergy();
 
     // BOT 
     this->pushStatusText(format("AI TURN"));
 
     auto cards = _current->pickCards(_hand);
+
+    // ===== MAKE CLONE INDEX FOR BOT =====
+    std::vector<int> botPicked;
+    for (auto c : cards) {
+        for (int i = 0; i < _hand.size(); ++i) {
+            if (_hand[i].get() == c) {
+                botPicked.push_back(i);
+                break;
+            }
+        }
+    }
+    savePlayedCards(_current, botPicked);
 
     for (auto c : cards)
         c->execute(*_current, *_opponent, *this);
@@ -631,10 +742,9 @@ void StateNewGame::pushStatusText(const std::string& text)
 {
     _statusQueue.push_back({ text, STATUS_DURATION });
 
-    _statusClock.restart();      // ⭐ reset thời gian
-    _lastStatusTime = 0.f;       // ⭐ reset delta
+    _statusClock.restart();      
+    _lastStatusTime = 0.f;     
 
-    // giới hạn số dòng 
     const size_t MAX_STATUS = 10;
     if (_statusQueue.size() > MAX_STATUS)
         _statusQueue.pop_front();
@@ -715,6 +825,50 @@ void StateNewGame::Render(RenderWindow* window)
         return;
     }
 
+    float centerY = WM_GI->getHeightScreen() * 0.35f;
+    float spacing = 60.f;
+
+    // ===== P1 LAST CARD =====
+    float startX_P1 = WM_GI->getWidthScreen() * 0.15f;
+
+    for (int i = 0; i < _playedP1UI.size(); ++i) {
+        _playedP1UI[i].setPosition(
+        startX_P1 - i * spacing,
+        centerY
+    );
+    window->draw(_playedP1UI[i]);
+    }
+
+    // ===== P2 LAST CARD =====
+    float startX_P2 = WM_GI->getWidthScreen() * 0.8f;
+
+    for (int i = 0; i < _playedP2UI.size(); ++i) {
+        _playedP2UI[i].setPosition(
+        startX_P2 + i * spacing,
+        centerY
+    );
+    window->draw(_playedP2UI[i]);
+    }
+
+    // ===== LABEL P1 =====
+    if (!_playedP1UI.empty()) {
+        txtPlayedP1.setPosition(
+            startX_P1 - 10.f,
+            centerY - 100.f
+        );
+        window->draw(txtPlayedP1);
+    }
+
+    // ===== LABEL P2 =====
+    if (!_playedP2UI.empty()) {
+        txtPlayedP2.setPosition(
+            startX_P2 + 20.f,
+            centerY - 100.f
+        );
+        window->draw(txtPlayedP2);
+    }
+
+
     txtTurn.setString(
         "TURN " + to_string(_turnCount) +
         (_current == _player1.get() ? " - P1" : " - P2")
@@ -745,15 +899,25 @@ void StateNewGame::Render(RenderWindow* window)
         window->draw(c.sprite);
 
     if (_phase == Phase::InputEnergy) {
+
+        window->draw(txtEnergyHint);
+
+        window->draw(txtAtkLabel);
+        window->draw(txtDefLabel);
+        window->draw(txtJpLabel);
+
         window->draw(atkBox.box);
         window->draw(defBox.box);
         window->draw(jpBox.box);
+
         window->draw(atkBox.text);
         window->draw(defBox.text);
         window->draw(jpBox.text);
+
         window->draw(btnConfirmEnergy);
         window->draw(txtConfirmEnergy);
     }
+
 
     if (_phase == Phase::PickCards) {
         window->draw(btnConfirmCards);

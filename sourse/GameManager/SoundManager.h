@@ -13,9 +13,14 @@ public:
     void playMusic(const std::string& path, bool loop = true);
     void stopMusic();
 
+    void setMasterVolume(float v);
+    float getMasterVolume() const;
+
 private:
     SoundManager() = default;
     std::unordered_map<std::string, sf::SoundBuffer> _buffers;
     sf::Sound _sound;
     sf::Music _music;
+
+    float _masterVolume = 100.f;
 };

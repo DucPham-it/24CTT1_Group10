@@ -17,7 +17,7 @@ DodgeCard::DodgeCard(float chance)
 void DodgeCard::execute(Player& self, Player&, StateNewGame& state) {
 
     cout << format("\n>>>> Su dung la bai: {} \n", _name);
-    state.pushStatusText(format("\n>>>> Su dung la bai: {} \n", _name));
+
     state.getScheduler().addEffect(
         &self,
         make_unique<DodgeEffect>(1, _dodgeChance, TickTrigger::endOfTurnOpponent),
@@ -28,4 +28,8 @@ void DodgeCard::execute(Player& self, Player&, StateNewGame& state) {
 
 void DodgeCard::printDescription() const {
     cout << format("- {}% ne don.", _dodgeChance * 100) << endl;
+}
+
+unique_ptr<Card> DodgeCard::clone() const {
+    return std::make_unique<DodgeCard>(*this);
 }

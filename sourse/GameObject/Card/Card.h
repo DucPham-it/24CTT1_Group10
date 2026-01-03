@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <iostream>
+#include <memory>
 
 class StateNewGame;
 
@@ -70,5 +72,10 @@ public:
      * Dùng khi hiển thị 6 lá rút được để người chơi chọn.
      */
     virtual void printDescription() const = 0;
+
+    /**
+     * @brief Tạo clone của card
+     */
+    virtual unique_ptr<Card> clone() const = 0;
 
 };
