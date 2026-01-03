@@ -164,7 +164,7 @@ void StateNewGame::Init()
 
         Text t;
         t.setFont(*_font);
-        t.setCharacterSize(18);
+        t.setCharacterSize(19);
         t.setString(botNames[i]);
         t.setPosition(btn.getPosition() + Vector2f(16, 8));
         botTexts.push_back(t);
@@ -222,7 +222,7 @@ void StateNewGame::Init()
         avatarP2.setScale(scale, scale);
 
         avatarP2.setPosition(
-            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 70.f,
+            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 65.f,
             panelP2.getPosition().y + panelP2.getSize().y / 2.f
             - avatarP2.getGlobalBounds().height / 2.f
         );
@@ -237,16 +237,16 @@ void StateNewGame::Init()
         b.box.setFillColor(Color(40, 40, 40));
         b.text.setFont(*_font);
         b.text.setCharacterSize(28);
-        b.text.setPosition(x + 7, y + 6);
+        b.text.setPosition(x + 10, y + 6);
         b.active = false;
         };
 
-    setupBox(atkBox, W / 2 - 110, H * 0.4f);
-    setupBox(defBox, W / 2 - 30, H * 0.4f);
-    setupBox(jpBox, W / 2 + 50, H * 0.4f);
+    setupBox(atkBox, W / 2 - 130, H * 0.54f);
+    setupBox(defBox, W / 2 - 45, H * 0.54f);
+    setupBox(jpBox, W / 2 + 40, H * 0.54f);
 
     btnConfirmEnergy.setSize({ 180,36 });
-    btnConfirmEnergy.setPosition(W / 2.2f, H * 0.45f);
+    btnConfirmEnergy.setPosition(W / 2.2f, H * 0.58f);
     btnConfirmEnergy.setFillColor(Color(80, 80, 200));
 
     txtConfirmEnergy.setFont(*_font);
@@ -258,11 +258,11 @@ void StateNewGame::Init()
     // =================================================
     // HAND
     // =================================================
-    handOrigin = { W * 0.2f, H * 0.55f };
-    handSpacing = (W * 0.65f) / 6.f;
+    handOrigin = { W * 0.18f, H * 0.7f };
+    handSpacing = (W * 0.7f) / 6.f;
 
     btnConfirmCards.setSize({ 250,40 });
-    btnConfirmCards.setPosition(W / 2.2f, H * 0.8f);
+    btnConfirmCards.setPosition(W / 2.2f, H * 0.9f);
     btnConfirmCards.setFillColor(Color(80, 160, 80));
 
     txtConfirmCards.setFont(*_font);
@@ -605,6 +605,8 @@ void StateNewGame::handleBotTurn()
     _current->allocateCursedEnergy();
 
     // BOT 
+    this->pushStatusText(format("AI TURN"));
+
     auto cards = _current->pickCards(_hand);
 
     for (auto c : cards)
@@ -671,7 +673,7 @@ void StateNewGame::Render(RenderWindow* window)
     }
     float centerX = WM_GI->getWidthScreen() / 2.f;
     float startY = WM_GI->getHeightScreen() * 0.2f;
-    float lineGap = 24.f;
+    float lineGap = 54.f;
 
     int i = 0;
     for (auto& msg : _statusQueue) {
