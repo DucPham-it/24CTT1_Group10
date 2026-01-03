@@ -311,44 +311,6 @@ SoundManager::instance().playMusic(
 }
 
 // =====================================================
-// SAVE CARD
-// =====================================================
-void StateNewGame::savePlayedCards(Player* owner,
-                                   std::vector<int>& picked)
-{
-    auto& list = (owner == _player1.get()) ? _playedP1 : _playedP2;
-    auto& ui   = (owner == _player1.get()) ? _playedP1UI : _playedP2UI;
-
-    list.clear();
-    ui.clear();
-
-    for (int idx : picked) {
-        // copy card
-        list.push_back(_hand[idx]->clone()); 
-
-
-        Sprite s;
-        if (auto tex = RM_GI->getTexture(_hand[idx]->getIconPath())) {
-            s.setTexture(*tex);
-            s.setScale(0.45f, 0.45f);
-            ui.push_back(s);
-        }
-    }
-
-    txtPlayedP1.setFont(*_font);
-    txtPlayedP1.setCharacterSize(22);
-    txtPlayedP1.setFillColor(sf::Color(235,235,235));
-    txtPlayedP1.setString("PLAYER 1");
-
-    txtPlayedP2.setFont(*_font);
-    txtPlayedP2.setCharacterSize(22);
-    txtPlayedP2.setFillColor(sf::Color(235,235,235));
-    txtPlayedP2.setString(s_IsAIMode ? _player2->getName() : "PLAYER 2");
-
-
-}
-
-// =====================================================
 // BOT SELECT
 // =====================================================
 void StateNewGame::handleBotSelect(Vector2f mouse)
@@ -495,8 +457,17 @@ void StateNewGame::Handle(Event event)
         // PLAYER TURN
         // =======================
         if (!_scheduler.hasEffect(_current, EffectTag::Jackpot)) {
-            atkBox.clear(); defBox.clear(); jpBox.clear();
+            _energyBuffer.clear();
+            atkBox.clear(); 
+            defBox.clear(); 
+            jpBox.clear();
+
+
+             _energyCursor = 0;          // đặt ở đây
             atkBox.active = true;
+            defBox.active = false;
+            jpBox.active = false;
+
             _phase = Phase::InputEnergy;
         }
         else {
@@ -504,17 +475,62 @@ void StateNewGame::Handle(Event event)
         }
 
     }
+    // =====================================
+    // AUTO ENERGY INPUT (NO CLICK NEEDED)
+    // =====================================
+    if (_phase == Phase::InputEnergy && event.type == Event::KeyPressed)
+    {
+        // ===== SỐ 0 → 9 =====
+        if (event.key.code >= Keyboard::Num0 && event.key.code <= Keyboard::Num9) {
+            int digit = event.key.code - Keyboard::Num0;
+            if (_energyBuffer.size() < 3)
+                _energyBuffer.push_back('0' + digit);
+        }
 
+        if (event.key.code >= Keyboard::Numpad0 && event.key.code <= Keyboard::Numpad9) {
+            int digit = event.key.code - Keyboard::Numpad0;
+            if (_energyBuffer.size() < 3)
+                _energyBuffer.push_back('0' + digit);
+        }
+
+        // ===== BACKSPACE =====
+        if (event.key.code == Keyboard::Backspace) {
+            if (!_energyBuffer.empty())
+                _energyBuffer.pop_back();
+        }
+
+        // ===== ESC = CLEAR =====
+        if (event.key.code == Keyboard::Escape) {
+            _energyBuffer.clear();
+        }
+
+        // ===== ENTER = CONFIRM =====
+        if (event.key.code == Keyboard::Enter && _energyBuffer.size() == 3) {
+            handleEnergyConfirm();
+        }
+
+        // ===== GÁN BUFFER → BOX =====
+        atkBox.value = _energyBuffer.size() > 0 ? string(1, _energyBuffer[0]) : "";
+        defBox.value = _energyBuffer.size() > 1 ? string(1, _energyBuffer[1]) : "";
+        jpBox.value  = _energyBuffer.size() > 2 ? string(1, _energyBuffer[2]) : "";
+
+        atkBox.text.setString(atkBox.value);
+        defBox.text.setString(defBox.value);
+        jpBox.text.setString(jpBox.value);
+    }
+
+
+
+    if (_phase != Phase::InputEnergy) {
     atkBox.handleEvent(event);
     defBox.handleEvent(event);
     jpBox.handleEvent(event);
+    }
 
     if (event.type == Event::KeyPressed &&
         event.key.code == Keyboard::Enter)
     {
-        if (_phase == Phase::InputEnergy)
-            handleEnergyConfirm();
-        else if (_phase == Phase::PickCards){
+        if (_phase == Phase::PickCards){
             handleCardConfirm();
         }
             
@@ -531,11 +547,18 @@ void StateNewGame::Handle(Event event)
             btnConfirmEnergy.getGlobalBounds().contains(mouse))
             handleEnergyConfirm();
 
-        if (_phase == Phase::PickCards) {
-            handleCardClick(mouse);
-            if (btnConfirmCards.getGlobalBounds().contains(mouse))
+        if (_phase == Phase::PickCards)
+        {
+            // Ưu tiên nút Confirm trước
+            if (btnConfirmCards.getGlobalBounds().contains(mouse)) {
                 handleCardConfirm();
+                return; // chặn không cho click xuyên xuống card
+            }
+
+            // Chỉ click card nếu KHÔNG bấm nút
+            handleCardClick(mouse);
         }
+
     }
 }
 
@@ -600,7 +623,6 @@ void StateNewGame::handleCardConfirm()
         return;
     }
 
-    savePlayedCards(_current, _picked);
 
     for (int idx : _picked)
         _hand[idx]->execute(*_current, *_opponent, *this);
@@ -647,26 +669,12 @@ void StateNewGame::processEndOfTurn() {
 void StateNewGame::handleBotTurn()
 {
     // BOT 
-    _playedP2.clear();
-    _playedP2UI.clear();
     _current->allocateCursedEnergy();
 
     // BOT 
     this->pushStatusText(format("AI TURN"));
 
     auto cards = _current->pickCards(_hand);
-
-    // ===== MAKE CLONE INDEX FOR BOT =====
-    std::vector<int> botPicked;
-    for (auto c : cards) {
-        for (int i = 0; i < _hand.size(); ++i) {
-            if (_hand[i].get() == c) {
-                botPicked.push_back(i);
-                break;
-            }
-        }
-    }
-    savePlayedCards(_current, botPicked);
 
     for (auto c : cards)
         c->execute(*_current, *_opponent, *this);
@@ -765,50 +773,6 @@ void StateNewGame::Render(RenderWindow* window)
         }
         return;
     }
-
-    float centerY = WM_GI->getHeightScreen() * 0.35f;
-    float spacing = 60.f;
-
-    // ===== P1 LAST CARD =====
-    float startX_P1 = WM_GI->getWidthScreen() * 0.15f;
-
-    for (int i = 0; i < _playedP1UI.size(); ++i) {
-        _playedP1UI[i].setPosition(
-        startX_P1 - i * spacing,
-        centerY
-    );
-    window->draw(_playedP1UI[i]);
-    }
-
-    // ===== P2 LAST CARD =====
-    float startX_P2 = WM_GI->getWidthScreen() * 0.8f;
-
-    for (int i = 0; i < _playedP2UI.size(); ++i) {
-        _playedP2UI[i].setPosition(
-        startX_P2 + i * spacing,
-        centerY
-    );
-    window->draw(_playedP2UI[i]);
-    }
-
-    // ===== LABEL P1 =====
-    if (!_playedP1UI.empty()) {
-        txtPlayedP1.setPosition(
-            startX_P1 - 10.f,
-            centerY - 100.f
-        );
-        window->draw(txtPlayedP1);
-    }
-
-    // ===== LABEL P2 =====
-    if (!_playedP2UI.empty()) {
-        txtPlayedP2.setPosition(
-            startX_P2 + 10.f,
-            centerY - 100.f
-        );
-        window->draw(txtPlayedP2);
-    }
-
 
     txtTurn.setString(
         "TURN " + to_string(_turnCount) +
