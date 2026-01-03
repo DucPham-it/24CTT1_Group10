@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "State.h"
 
@@ -73,7 +73,7 @@ private:
     int  _turnCount;
 
     static bool s_IsAIMode;
-
+    bool _waitForNextTurn;
 
     // =========================
     // SOUND 
