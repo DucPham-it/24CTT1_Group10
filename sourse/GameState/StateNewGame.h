@@ -7,6 +7,10 @@
 #include "../GameObject/Player/Player.h"
 #include "../GameObject/Card/Card.h"
 
+#include "../UI/EnergyInputUI.h"
+#include "../UI/HandUI.h"
+#include "../UI/PlayedCardsView.h"
+
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Clock.hpp>
 #include <memory>
@@ -54,7 +58,10 @@ public:
         float lifetime;
     };
     void pushStatusText(const std::string& text);
-
+    // =========================
+    // API cho BotController
+    // =========================
+    void recordPlayedCards(Player* owner, std::vector<int>& picked);
 private:
     // =========================
     // CORE GAME OBJECTS
@@ -70,6 +77,7 @@ private:
     EffectScheduler _scheduler;
 
     bool _isGameOver;
+    bool _isWinGame;
     int  _turnCount;
 
     static bool s_IsAIMode;
@@ -95,53 +103,16 @@ private:
     // =========================
     // INPUT BOX (ENERGY)
     // =========================
-    struct InputBox {
-        RectangleShape box;
-        Text text;
-        string value;
-        bool active = false;
-
-        void handleEvent(Event& e);
-        int  getInt() const;
-        void clear();
-    };
-
-    Text txtAtkLabel;
-    Text txtDefLabel;
-    Text txtJpLabel;
-
-    Text txtEnergyHint;
-
-    InputBox atkBox;
-    InputBox defBox;
-    InputBox jpBox;
     
-    RectangleShape btnConfirmEnergy;
+    EnergyInputUI _energyUI;
+    Text txtEnergyHint;
     Text txtConfirmEnergy;
-    int _energyFocus = 0;
-
-    void updateEnergyFocus();
 
     // =========================
     // CARD PICK UI
     // =========================
-    struct CardUI {
-        int index;
-        bool selected;
-        Sprite sprite;
-        Vector2f basePos;
-    };
-
     vector<unique_ptr<Card>> _hand;
-    vector<CardUI> m_HandUI;
-    vector<int> _picked;
-
-    Vector2f handOrigin;
-    float handSpacing;
-
-    RectangleShape btnConfirmCards;
-    Text txtConfirmCards;
-
+    HandUI _handUI;
     // ===== BOT SELECT UI =====
     RectangleShape panelBot;
     vector<RectangleShape> botButtons;   
@@ -156,20 +127,17 @@ private:
     // =======================
     // PLAYED CARDS (LAST TURN)
     // =======================
-    vector<unique_ptr<Card>> _playedP1;
-    vector<unique_ptr<Card>> _playedP2;
 
-    vector<Sprite> _playedP1UI;
-    vector<Sprite> _playedP2UI;
-
-    Text txtPlayedP1;
-    Text txtPlayedP2;
-
-    void savePlayedCards(Player* owner, vector<int>& picked);
+    PlayedCardsView _playedView;
 
     // =========================
     // HUD / UI
     // =========================
+    float DESIGN_W;
+    float DESIGN_H;
+
+    float sx;
+    float sy;
     Font* _font;
     Sprite m_Background;
     Sprite avatarP1;
@@ -208,10 +176,6 @@ private:
     void handleBotTurn();
 
     void drawHand();
-
-    void handleEnergyConfirm();
-    void handleCardClick(Vector2f mouse);
-    void handleCardConfirm();
 
     void swapTurns();
     void endTurn();

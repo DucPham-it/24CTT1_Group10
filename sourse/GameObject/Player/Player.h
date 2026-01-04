@@ -59,5 +59,5 @@ public:
     void setJackpotNerf(bool val); //BOT
     bool isJackpotNerfed() const; //BOT
     virtual bool isBot() const { return false; } //BOT
-    virtual string getName() const { return "Nguoi Choi"; } //BOT
+    virtual string getName() const { return "PLAYER"; } //BOT
 };

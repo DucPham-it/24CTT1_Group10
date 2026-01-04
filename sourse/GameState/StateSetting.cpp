@@ -134,31 +134,67 @@ void StateSetting::Render(RenderWindow* window)
 	for (size_t i = 0; i < 4; i++) window->draw(m_ListText[i]);
 }
 
-void StateSetting::setVolumn() {
+void StateSetting::setVolumn()
+{
 	int stt = m_KnobDragging / 3 - 2;
 
-	m_ListSprite[m_KnobDragging].setPosition(Vector2f{ max(static_cast<float>(650 * WM_GI->getScaleX()), min(m_MousePos, static_cast<float>(882.5 * WM_GI->getScaleX()))),
-														static_cast<float>(260 + stt * 40) * WM_GI->getScaleY() });
-	float volume = (m_ListSprite[m_KnobDragging].getPosition().x - 650 * WM_GI->getScaleX()) * 100 / static_cast<float>(232.5);
-	m_ListSprite[m_KnobDragging - 1].setScale(Vector2f{ static_cast<float>(2.325 * volume + 8.75) / 100.f,
-		(float)2.5 * WM_GI->getScaleY() });
+	float sliderLeft = 650.f * WM_GI->getScaleX();
+	float sliderRight = 882.5f * WM_GI->getScaleX();
+	float sliderWidth = sliderRight - sliderLeft;
 
+	// Clamp chuột trong vùng slider
+	float x = std::max(sliderLeft, std::min(m_MousePos, sliderRight));
+
+	// Di chuyển knob
+	m_ListSprite[m_KnobDragging].setPosition({
+		x,
+		(260.f + stt * 40.f) * WM_GI->getScaleY()
+		});
+
+	// Tính volume 0 → 100
+	float volume = (x - sliderLeft) / sliderWidth * 100.f;
+
+	// Scale progress bar
+	float percent = volume / 100.f;
+
+	m_ListSprite[m_KnobDragging - 1].setScale({
+		percent * 2.5f * WM_GI->getScaleX(),
+		2.5f * WM_GI->getScaleY()
+		});
+
+	// Set audio
 	switch (m_KnobDragging) {
-	case 6:
-		RM_GI->setBGMVolume(volume);
-		SoundManager::instance().setMasterVolume(volume);
-		break;
-	case 9:
-		RM_GI->setWMVolume(volume);
-		break;
-	case 12:
-		RM_GI->setCSVolume(volume);
-		break;
-	case 15:
-		RM_GI->setMISSVolume(volume);
-		break;
-	default:
-		break;
+	case 6:  RM_GI->setBGMVolume(volume);  break;
+	case 9:  RM_GI->setWMVolume(volume);   break;
+	case 12: RM_GI->setCSVolume(volume);   break;
+	case 15: RM_GI->setMISSVolume(volume); break;
 	}
-
 }
+// void StateSetting::setVolumn() {
+// 	int stt = m_KnobDragging / 3 - 2;
+
+// 	m_ListSprite[m_KnobDragging].setPosition(Vector2f{ max(static_cast<float>(650 * WM_GI->getScaleX()), min(m_MousePos, static_cast<float>(882.5 * WM_GI->getScaleX()))),
+// 														static_cast<float>(260 + stt * 40) * WM_GI->getScaleY() });
+// 	float volume = (m_ListSprite[m_KnobDragging].getPosition().x - 650 * WM_GI->getScaleX()) * 100 / static_cast<float>(232.5);
+// 	m_ListSprite[m_KnobDragging - 1].setScale(Vector2f{ static_cast<float>(2.325 * volume + 8.75) / 100.f,
+// 		(float)2.5 * WM_GI->getScaleY() });
+
+// 	switch (m_KnobDragging) {
+// 	case 6:
+// 		RM_GI->setBGMVolume(volume);
+// 		SoundManager::instance().setMasterVolume(volume);
+// 		break;
+// 	case 9:
+// 		RM_GI->setWMVolume(volume);
+// 		break;
+// 	case 12:
+// 		RM_GI->setCSVolume(volume);
+// 		break;
+// 	case 15:
+// 		RM_GI->setMISSVolume(volume);
+// 		break;
+// 	default:
+// 		break;
+// 	}
+
+// }

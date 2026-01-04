@@ -1,18 +1,3 @@
-- **readme.md**: file markdown cung cấp các thông tin sau
-    - Thành viên nhóm: họ tên, mssv, nhóm trưởng
-    - Tên đề tài, mô tả ngắn gọn về đề tài
-    - Liệt kê các công việc mà từng thành viên đã thực hiện
-    - Tỉ lệ đóng góp của các thành viên vào dự án (**tổng** các thành viên cộng lại là 100%)
-        - Ví dụ Thành viên 1: 35%, thành viên 2: 30%, thành viên 3: 35%.
-    - Tỉ lệ điểm của các thành viên
-        - Ví dụ chia đều. (Nếu điểm đồ án là 9 thì tất cả các thành viên sẽ đạt 9 điểm). Giáo viên sẽ căn cứ độ khó và độ phức tạp của các công việc do thành viên thực hiện để đánh giá có **đồng ý** quyết định chia đều hay không. Nếu chọn chia đều mà có thành viên **chênh lệch quá lớn** về phân công thì kết quả điểm cũng sẽ **không chia đều**.
-        - Ví dụ chia 10-9-8 (Nếu điểm đồ án là 7.5 thì điểm sẽ là 7.5 - 6.75 - 6)
-    - Video demo: max 5 phút, demo các luồng sự kiện chính của chương trình
-        - Không lồng tiếng, không lồng nhạc vì giáo viên không mở loa khi chấm
-        - Sử dụng hình nền mặc định của hệ điều hành
-        - Muốn giải thích thì mở notepad gõ text
-        - Upload lên youtube, nộp lại link để ở chế độ Unlisted (Chỉ người có link mới coi được). **Vui lòng không nộp video vào Moodle**.
-
 # THÔNG TIN THÀNH VIÊN NHÓM:
 
 | STT | MSSV     | Họ và tên              | 

@@ -9,13 +9,14 @@
 #include "../GameObject/BattleSystem/BattleSystem.h"
 #include "../GameObject/Card/Card.h"
 #include "../GameObject/LogService/BattleLogService.h"
-
+#include "../GameObject/AI/BotController.h"
 // ===== AI =====
 #include "../GameObject/AI/BotPlayer.h"
 #include "../GameObject/AI/BotHakari.h"
 #include "../GameObject/AI/CharlesBoss.h"
 #include "../GameObject/AI/KashimoBoss.h"
 #include "../GameObject/AI/UraumeBoss.h"
+#include "../GameObject/AI/BotController.h"
 
 using namespace sf;
 using namespace std;
@@ -41,6 +42,7 @@ StateNewGame::StateNewGame()
     _current(nullptr),
     _opponent(nullptr),
     _isGameOver(false),
+    _isWinGame(false),
     _turnCount(1),
     _phase(Phase::None),
     _font(nullptr)
@@ -64,55 +66,35 @@ void StateNewGame::Resume() {}
 // =====================================================
 // GETTERS
 // =====================================================
+
 EffectScheduler& StateNewGame::getScheduler() { return _scheduler; }
 BattleSystem* StateNewGame::getBattle() { return _battle; }
 
-// =====================================================
-// INPUT BOX
-// =====================================================
-void StateNewGame::InputBox::handleEvent(Event& e) {
-    if (!active) return;
-
-    if (e.type == Event::TextEntered) {
-        if (e.text.unicode >= '0' && e.text.unicode <= '9') {
-            value += static_cast<char>(e.text.unicode);
-            text.setString(value);
-        }
-        if (e.text.unicode == 8 && !value.empty()) {
-            value.pop_back();
-            text.setString(value);
-        }
-    }
-}
-
-int StateNewGame::InputBox::getInt() const {
-    return value.empty() ? 0 : stoi(value);
-}
-
-void StateNewGame::InputBox::clear() {
-    value.clear();
-    text.setString("");
-}
 
 // =====================================================
 // INIT
 // =====================================================
 void StateNewGame::Init()
 {
-    RM_GI->getBackgroundMusic()->stop();
-    SoundManager::instance().stopMusic();
-
-    GameConfig::instance().loadFromFile(
-        "GameConfig/game_config.txt"
-    );
-    Player::loadConfig();
-
-    _font = RM_GI->getFont("Minecraft.ttf");
+    // ================== DESIGN RESOLUTION ==================
+    sx = WM_GI->getScaleX();
+    sy = WM_GI->getScaleY();
+    float DESIGN_W = 1366.f;
+    float DESIGN_H = 768.f;
 
     float W = WM_GI->getWidthScreen();
     float H = WM_GI->getHeightScreen();
 
-    // ===== BACKGROUND =====
+    // ================== SYSTEM ==================
+    RM_GI->getBackgroundMusic()->stop();
+    SoundManager::instance().stopMusic();
+
+    GameConfig::instance().loadFromFile("GameConfig/game_config.txt");
+    Player::loadConfig();
+
+    _font = RM_GI->getFont("Minecraft.ttf");
+
+    // ================== BACKGROUND ==================
     if (auto bg = RM_GI->getTexture("battle_bg.png")) {
         m_Background.setTexture(*bg);
         m_Background.setScale(
@@ -121,35 +103,28 @@ void StateNewGame::Init()
         );
     }
 
-    // ===== GAME OVER =====
+    // ================== GAME OVER ==================
     _gameOverTexture = RM_GI->getTexture("gameOver-animation.png");
-
     if (_gameOverTexture) {
         _gameOverRect = sf::IntRect(0, 0, 94, 13);
         _gameOverSprite.setTexture(*_gameOverTexture);
         _gameOverSprite.setTextureRect(_gameOverRect);
-
-
-
-        _gameOverSprite.setScale(Vector2f(10.f * WM_GI->getScaleX(), 10.f * WM_GI->getScaleY()));
-
-        _gameOverSprite.setOrigin(40.f, 8.f); 
-        _gameOverSprite.setPosition(
-            WM_GI->getWidthScreen() / 2.f,
-            WM_GI->getHeightScreen() / 2.f
-        );
+        _gameOverSprite.setScale(10.f * sx, 10.f * sy);
+        _gameOverSprite.setOrigin(40.f, 8.f);
+        _gameOverSprite.setPosition(W / 2.f, H / 2.f);
     }
 
-    // =================================================
-    // BOT SELECT UI (4 BOSSES)
-    // =================================================
-    panelBot.setSize({ 500, 300 });
-    panelBot.setPosition({ W / 2 - 230, H / 2 - 140 });
+    // ================== BOT SELECT ==================
+    panelBot.setSize({ 450 * sx, 300 * sy });
+    panelBot.setPosition(
+        (DESIGN_W / 2 - 230) * sx,
+        (DESIGN_H / 2 - 140) * sy
+    );
     panelBot.setFillColor(Color(0, 0, 0, 210));
 
     vector<string> botNames = {
         "Hakari (Jackpot)",
-        "Charles Bernard (Dodge)",        
+        "Charles Bernard (Dodge)",
         "Kashimo Hajime (Burst)",
         "Uraume (Freeze)"
     };
@@ -159,150 +134,85 @@ void StateNewGame::Init()
 
     for (int i = 0; i < 4; ++i) {
         RectangleShape btn;
-        btn.setSize({ 320, 42 });
-        btn.setPosition(W / 2 - 160, H / 2 - 80 + i * 48);
+        btn.setSize({ 330 * sx, 42 * sy });
+        btn.setPosition(
+            (DESIGN_W / 2 - 160) * sx,
+            (DESIGN_H / 2 - 80 + i * 48) * sy
+        );
         btn.setFillColor(Color(120, 120, 180));
         botButtons.push_back(btn);
 
         Text t;
         t.setFont(*_font);
-        t.setCharacterSize(19);
+        t.setCharacterSize(static_cast<unsigned>(19 * sy));
         t.setString(botNames[i]);
-        t.setPosition(btn.getPosition() + Vector2f(16, 8));
+        t.setPosition(
+            btn.getPosition().x + 16 * sx,
+            btn.getPosition().y + 8 * sy
+        );
         botTexts.push_back(t);
     }
 
-    // =================================================
-    // HUD PANELS
-    // =================================================
-    panelP1.setSize({ 300,150});
-    panelP1.setPosition({ 20, H - 220 });
+    // ================== HUD PANELS ==================
+    panelP1.setSize({ 180 * sx,100* sy });
+    panelP1.setPosition({ 20 * sx, (DESIGN_H - 100) * sy });
     panelP1.setFillColor(Color(0, 0, 0, 150));
 
-    panelP2.setSize({ 300,150 });
-    panelP2.setPosition({ W - 320, 20 });
+    panelP2.setSize({ 180 * sx,100 * sy });
+    panelP2.setPosition({ (DESIGN_W - 220) * sx, 20 * sy });
     panelP2.setFillColor(Color(0, 0, 0, 150));
 
     auto setupText = [&](Text& t, float x, float y, Color c) {
         t.setFont(*_font);
-        t.setCharacterSize(30);
+        t.setCharacterSize(static_cast<unsigned>(20 * sy));
         t.setFillColor(c);
-        t.setPosition(x, y);
-        };
+        t.setPosition(x * sx, y * sy);
+    };
 
-    setupText(txtP1_HP, 40, H - 200, Color::Red);
-    setupText(txtP1_Rage, 40, H - 170, Color::Yellow);
-    setupText(txtP1_Shield, 40, H - 140, Color::Cyan);
+    setupText(txtP1_HP, 40, DESIGN_H - 90, Color::Red);
+    setupText(txtP1_Rage, 40, DESIGN_H - 70, Color::Yellow);
+    setupText(txtP1_Shield, 40, DESIGN_H - 50, Color::Cyan);
 
-    setupText(txtP2_HP, W - 300, 40, Color::Red);
-    setupText(txtP2_Rage, W - 300, 70, Color::Yellow);
-    setupText(txtP2_Shield, W - 300, 100, Color::Cyan);
+    setupText(txtP2_HP, DESIGN_W - 200, 30, Color::Red);
+    setupText(txtP2_Rage, DESIGN_W - 200, 50, Color::Yellow);
+    setupText(txtP2_Shield, DESIGN_W - 200, 70, Color::Cyan);
 
     txtTurn.setFont(*_font);
-    txtTurn.setCharacterSize(32);
-    txtTurn.setPosition(W / 2 - 80, 10);
+    txtTurn.setCharacterSize(static_cast<unsigned>(24 * sy));
+    txtTurn.setPosition((DESIGN_W / 2 - 90) * sx, 10 * sy);
 
-    // ===== AVATAR P1 =====
+    // ================== AVATAR ==================
     if (auto tex = RM_GI->getTexture("p1.png")) {
         avatarP1.setTexture(*tex);
-
-        float scale = (panelP1.getSize().y * 0.5f) / tex->getSize().y;
+        float scale = (35.f / tex->getSize().y) * sy;
         avatarP1.setScale(scale, scale);
-
         avatarP1.setPosition(
-            panelP1.getPosition().x + avatarP1.getGlobalBounds().width + 250.f,
-            panelP1.getPosition().y + panelP1.getSize().y / 2.f
-            - avatarP1.getGlobalBounds().height / 2.f
+            panelP1.getPosition().x + panelP1.getSize().x + 20 * sx,
+            panelP1.getPosition().y + panelP1.getSize().y / 2 -
+            avatarP1.getGlobalBounds().height / 2
         );
     }
 
-    // ===== AVATAR P2 =====
     if (auto tex = RM_GI->getTexture("p2.png")) {
         avatarP2.setTexture(*tex);
-
-        float scale = (panelP2.getSize().y * 0.5f) / tex->getSize().y;
+        float scale = (35.f / tex->getSize().y) * sy;
         avatarP2.setScale(scale, scale);
-
         avatarP2.setPosition(
-            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 65.f,
-            panelP2.getPosition().y + panelP2.getSize().y / 2.f
-            - avatarP2.getGlobalBounds().height / 2.f
+            panelP2.getPosition().x - avatarP2.getGlobalBounds().width - 20 * sx,
+            panelP2.getPosition().y + panelP2.getSize().y / 2 -
+            avatarP2.getGlobalBounds().height / 2
         );
     }
 
+    _playedView.init(_font, DESIGN_W, DESIGN_H);
     // =================================================
     // INPUT BOX (ENERGY)
     // =================================================
-    
-    auto setupBox = [&](InputBox& b, float x, float y) {
-        b.box.setSize({ 70, 50 });
-        b.box.setPosition(x, y);
-        b.box.setFillColor(Color(40, 40, 40));
-        b.text.setFont(*_font);
-        b.text.setCharacterSize(28);
-        b.text.setPosition(x + 10, y + 6);
-        b.active = false;
-        };
-
-    setupBox(atkBox, W / 2 - 130, H * 0.54f);
-    setupBox(defBox, W / 2 - 45, H * 0.54f);
-    setupBox(jpBox, W / 2 + 40, H * 0.54f);
-
-    btnConfirmEnergy.setSize({ 180,36 });
-    btnConfirmEnergy.setPosition(W / 2.2f, H * 0.58f);
-    btnConfirmEnergy.setFillColor(Color(80, 80, 200));
-
-    txtConfirmEnergy.setFont(*_font);
-    txtConfirmEnergy.setString("CONFIRM");
-    txtConfirmEnergy.setPosition(
-        btnConfirmEnergy.getPosition() + Vector2f(10, 6)
-    );
-
-    // ===== ENERGY LABELS =====
-    auto setupLabel = [&](sf::Text& t, const std::string& str, float x, float y) {
-        t.setFont(*_font);
-        t.setCharacterSize(20);
-        t.setFillColor(sf::Color::White);
-        t.setString(str);
-        t.setPosition(x, y);
-    };
-
-    setupLabel(txtAtkLabel, "ATK", atkBox.box.getPosition().x + 15,
-            atkBox.box.getPosition().y - 28);
-
-    setupLabel(txtDefLabel, "DEF", defBox.box.getPosition().x + 15,
-            defBox.box.getPosition().y - 28);
-
-    setupLabel(txtJpLabel, "JP", jpBox.box.getPosition().x + 20,
-           jpBox.box.getPosition().y - 28);
-
-    // ===== ENERGY HINT =====
-    txtEnergyHint.setFont(*_font);
-    txtEnergyHint.setCharacterSize(26);
-    txtEnergyHint.setFillColor(sf::Color(220, 220, 220));
-    txtEnergyHint.setString("Point allocation, the total must be 5");
-
-    txtEnergyHint.setPosition(
-        WM_GI->getWidthScreen() / 2.f - txtEnergyHint.getLocalBounds().width / 2.f,
-        atkBox.box.getPosition().y - 70
-    );
-
+    _energyUI.init(_font, DESIGN_W, DESIGN_H);
     // =================================================
-    // HAND
+    // HAND UI
     // =================================================
-    handOrigin = { W * 0.18f, H * 0.7f };
-    handSpacing = (W * 0.7f) / 6.f;
-
-    btnConfirmCards.setSize({ 250,40 });    
-    btnConfirmCards.setPosition(W / 2.2f, H * 0.9f);
-    btnConfirmCards.setFillColor(Color(80, 160, 80));
-
-    txtConfirmCards.setFont(*_font);
-    txtConfirmCards.setString("PLAY CARDS");
-    txtConfirmCards.setPosition(
-        btnConfirmCards.getPosition() + Vector2f(10, 6)
-    );
-
+    _handUI.init(_font, DESIGN_W, DESIGN_H);
     // =================================================
     // DECIDE START PHASE
     // =================================================
@@ -339,44 +249,6 @@ SoundManager::instance().playMusic(
     "assets/sound/bgm/soundgame1.ogg",
     true
 );
-
-}
-
-// =====================================================
-// SAVE CARD
-// =====================================================
-void StateNewGame::savePlayedCards(Player* owner,
-                                   std::vector<int>& picked)
-{
-    auto& list = (owner == _player1.get()) ? _playedP1 : _playedP2;
-    auto& ui   = (owner == _player1.get()) ? _playedP1UI : _playedP2UI;
-
-    list.clear();
-    ui.clear();
-
-    for (int idx : picked) {
-        // copy card
-        list.push_back(_hand[idx]->clone()); 
-
-
-        Sprite s;
-        if (auto tex = RM_GI->getTexture(_hand[idx]->getIconPath())) {
-            s.setTexture(*tex);
-            s.setScale(0.45f, 0.45f);
-            ui.push_back(s);
-        }
-    }
-
-    txtPlayedP1.setFont(*_font);
-    txtPlayedP1.setCharacterSize(22);
-    txtPlayedP1.setFillColor(sf::Color(235,235,235));
-    txtPlayedP1.setString("PLAYER 1");
-
-    txtPlayedP2.setFont(*_font);
-    txtPlayedP2.setCharacterSize(22);
-    txtPlayedP2.setFillColor(sf::Color(235,235,235));
-    txtPlayedP2.setString(s_IsAIMode ? _player2->getName() : "PLAYER 2");
-
 
 }
 
@@ -423,24 +295,8 @@ void StateNewGame::drawHand()
         if (!c) continue;
         _hand.push_back(move(c));
     }
-
-    m_HandUI.clear();
-    for (int i = 0; i < _hand.size(); ++i) {
-        CardUI ui;
-        ui.index = i;
-        ui.selected = false;
-
-        if (auto tex = RM_GI->getTexture(_hand[i]->getIconPath())) {
-            ui.sprite.setTexture(*tex);
-            ui.sprite.setScale(0.55f, 0.55f);
-            ui.sprite.setPosition(
-                handOrigin.x + i * handSpacing,
-                handOrigin.y
-            );
-            ui.basePos = ui.sprite.getPosition(); 
-            m_HandUI.push_back(ui);
-        }
-    }
+    _handUI.setHand(_hand);
+    
 }
 
 // =====================================================
@@ -461,8 +317,14 @@ void StateNewGame::Handle(Event event)
 
     if (_isGameOver) {
         SoundManager::instance().stopMusic();
-        auto checkMusic = RM_GI->getWinMusic()->getStatus();
-
+        SoundSource::Status checkMusic;
+        if(_isWinGame){
+            checkMusic = RM_GI->getWinMusic()->getStatus();
+        }
+        else{
+            checkMusic = RM_GI->getLoseMusic()->getStatus();
+        }
+        
         if (checkMusic != sf::Music::Playing) {
             RM_GI->getBackgroundMusic()->play();
         }
@@ -470,6 +332,7 @@ void StateNewGame::Handle(Event event)
         if ((event.type == Event::MouseButtonPressed &&
             (event.mouseButton.button == Mouse::Left)) || (event.type == Event::KeyPressed)){
                 RM_GI->getWinMusic()->stop();
+                RM_GI->getLoseMusic()->stop();
                 StateManager::getInstance()->ChangeState(0);
             }
         
@@ -527,8 +390,7 @@ void StateNewGame::Handle(Event event)
         // PLAYER TURN
         // =======================
         if (!_scheduler.hasEffect(_current, EffectTag::Jackpot)) {
-            atkBox.clear(); defBox.clear(); jpBox.clear();
-            _energyFocus = 0;
+            _energyUI.clear();
             _phase = Phase::InputEnergy;
         }
         else {
@@ -537,139 +399,56 @@ void StateNewGame::Handle(Event event)
 
     }
 
-    if (_phase == Phase::InputEnergy &&
-    event.type == sf::Event::KeyPressed &&
-    event.key.code == sf::Keyboard::Tab)
-    {
-        _energyFocus = (_energyFocus + 1) % 3;
-        updateEnergyFocus();
+    if (_phase == Phase::InputEnergy) {
+
+        _energyUI.handleEvent(event);
+
+        if (_phase == Phase::InputEnergy && _energyUI.isConfirmed())
+        {
+            int atk = _energyUI.getAtk();
+            int def = _energyUI.getDef();
+            int jp  = _energyUI.getJP();
+
+            if (atk + def + jp != Player::MAX_CURSED_ENERGY)
+            {
+                pushStatusText("WRONG !!! ENSURE THE TOTAL IS 5");
+                pushStatusText("TOTAL NOW IS " + std::to_string(atk+def+jp));
+                RM_GI->getSound("wrongbeep_2.ogg")->play();
+                _energyUI.resetConfirm();
+                return;
+            }
+
+            _current->allocateCursedEnergy(atk, def, jp);
+            _energyUI.resetConfirm();
+            _phase = Phase::PickCards;
+        }
         return;
     }
 
-    atkBox.handleEvent(event);
-    defBox.handleEvent(event);
-    jpBox.handleEvent(event);
-
-    if (event.type == Event::KeyPressed &&
-        event.key.code == Keyboard::Enter)
+    
+    else if (_phase == Phase::PickCards)
     {
-        if (_phase == Phase::InputEnergy)
-            handleEnergyConfirm();
-        else if (_phase == Phase::PickCards){
-            handleCardConfirm();
-        }
+        _handUI.handleEvent(event);   
+
+        if (_handUI.isConfirmed())
+        {
+            auto picked = _handUI.getPicked();   
+
+            recordPlayedCards(_current, picked);
             
-    }
+            for (int idx : picked)
+                _hand[idx]->execute(*_current, *_opponent, *this);
 
-    if (event.type == Event::MouseButtonPressed) {
-        Vector2f mouse(event.mouseButton.x, event.mouseButton.y);
+            _handUI.clearPick();
 
-        if (atkBox.box.getGlobalBounds().contains(mouse)) _energyFocus = 0;
-        if (defBox.box.getGlobalBounds().contains(mouse)) _energyFocus = 1;
-        if (jpBox.box.getGlobalBounds().contains(mouse))  _energyFocus = 2;
+            _battle->onTurnEnd(*_current);
+            processEndOfTurn();
 
-        updateEnergyFocus();
-
-
-        if (_phase == Phase::InputEnergy &&
-            btnConfirmEnergy.getGlobalBounds().contains(mouse))
-            handleEnergyConfirm();
-
-        if (_phase == Phase::PickCards) {
-            handleCardClick(mouse);
-            if (btnConfirmCards.getGlobalBounds().contains(mouse))
-                handleCardConfirm();
+            if (!_isGameOver)
+                endTurn();
         }
     }
-}
 
-// =====================================================
-// ENERGY CONFIRM
-// =====================================================
-
-void StateNewGame::updateEnergyFocus()
-{
-    atkBox.active = (_energyFocus == 0);
-    defBox.active = (_energyFocus == 1);
-    jpBox.active  = (_energyFocus == 2);
-
-    atkBox.box.setOutlineThickness(atkBox.active ? 3.f : 0.f);
-    defBox.box.setOutlineThickness(defBox.active ? 3.f : 0.f);
-    jpBox.box.setOutlineThickness(jpBox.active ? 3.f : 0.f);
-
-    atkBox.box.setOutlineColor(sf::Color::Cyan);
-    defBox.box.setOutlineColor(sf::Color::Cyan);
-    jpBox.box.setOutlineColor(sf::Color::Cyan);
-}
-
-void StateNewGame::handleEnergyConfirm()
-{
-    int atk = atkBox.getInt();
-    int def = defBox.getInt();
-    int jp = jpBox.getInt();
-
-    if (atk + def + jp != Player::MAX_CURSED_ENERGY){
-        StateNewGame::pushStatusText(format("WRONG !!! ENSURE THE TOTAL IS 5"));
-        StateNewGame::pushStatusText(format("TOTAL KNOW IS {}", atk+def+jp));
-        return;
-    }
-    _current->allocateCursedEnergy(atk, def, jp);
-    _phase = Phase::PickCards;
-}
-
-// =====================================================
-// CARD PICK
-// =====================================================
-void StateNewGame::handleCardClick(sf::Vector2f mouse)
-{
-    for (auto& ui : m_HandUI) {
-        if (!ui.sprite.getGlobalBounds().contains(mouse))
-            continue;
-
-        SoundManager::instance().playSound("card_click_1");
-
-        if (ui.selected) {
-            ui.selected = false;
-            ui.sprite.setColor(sf::Color::White);
-            ui.sprite.setPosition(ui.basePos);
-
-            auto it = std::find(_picked.begin(), _picked.end(), ui.index);
-            if (it != _picked.end())
-                _picked.erase(it);
-
-            return;
-        }
-
-        if (_picked.size() < 3) {
-            ui.selected = true;
-            ui.sprite.setColor(sf::Color(200, 200, 255));
-            ui.sprite.setPosition(
-                ui.basePos.x,
-                ui.basePos.y - 20.f 
-            );
-            _picked.push_back(ui.index);
-        }
-
-        return;
-    }
-}
-
-void StateNewGame::handleCardConfirm()
-{
-    if (_picked.size() != 3){
-        return;
-    }
-
-    savePlayedCards(_current, _picked);
-
-    for (int idx : _picked)
-        _hand[idx]->execute(*_current, *_opponent, *this);
-
-    _battle->onTurnEnd(*_current);
-    processEndOfTurn();
-
-    if (!_isGameOver)
-        endTurn();
 }
 
 // =====================================================
@@ -683,18 +462,31 @@ void StateNewGame::swapTurns() {
 void StateNewGame::endTurn() {
     _scheduler.tickPlayer(*_current);
     swapTurns();
-    _picked.clear();
+    _handUI.clearPick();
     _phase = Phase::None;
     _waitForNextTurn = true;  
 }
 
 void StateNewGame::processEndOfTurn() {
     if (_current->getHp() <= 0 || _opponent->getHp() <= 0) {
+        if(_current->getHp() <= 0)
+        {
+            _isWinGame = false;
+        }
+        else
+        {
+            _isWinGame = true;
+        }
         _isGameOver = true;
         _showGameOver = true;
 
         SoundManager::instance().stopMusic();
-        RM_GI->getWinMusic()->play();
+        if (_isWinGame) {
+            RM_GI->getWinMusic()->play();
+        } else {
+            RM_GI->getLoseMusic()->play(); 
+        }
+
 
         _gameOverClock.restart();
         _gameOverFrame = 0;
@@ -706,37 +498,21 @@ void StateNewGame::processEndOfTurn() {
 // =====================================================
 void StateNewGame::handleBotTurn()
 {
-    // BOT 
-    _playedP2.clear();
-    _playedP2UI.clear();
-    _current->allocateCursedEnergy();
+    pushStatusText("AI TURN");
 
-    // BOT 
-    this->pushStatusText(format("AI TURN"));
+    BotController::runTurn(
+        _current,
+        _opponent,
+        _hand,
+        this,
+        _battle
+    );
 
-    auto cards = _current->pickCards(_hand);
-
-    // ===== MAKE CLONE INDEX FOR BOT =====
-    std::vector<int> botPicked;
-    for (auto c : cards) {
-        for (int i = 0; i < _hand.size(); ++i) {
-            if (_hand[i].get() == c) {
-                botPicked.push_back(i);
-                break;
-            }
-        }
-    }
-    savePlayedCards(_current, botPicked);
-
-    for (auto c : cards)
-        c->execute(*_current, *_opponent, *this);
-
-    _battle->onTurnEnd(*_current);
     processEndOfTurn();
-
     if (!_isGameOver)
         endTurn();
 }
+
 
 void StateNewGame::pushStatusText(const std::string& text)
 {
@@ -750,7 +526,10 @@ void StateNewGame::pushStatusText(const std::string& text)
         _statusQueue.pop_front();
 }
 
-
+void StateNewGame::recordPlayedCards(Player* owner, std::vector<int>& picked){
+    bool isP1 = owner == _player1.get();
+    _playedView.setPlayedCards(isP1, owner, picked, _hand);
+}
 // =====================================================
 // RENDER
 // =====================================================
@@ -784,29 +563,36 @@ void StateNewGame::Render(RenderWindow* window)
             ++it;
     }
 
-
-
+    // =================================================
+    // BACKGROUND
+    // =================================================
     window->draw(m_Background);
 
+    // =================================================
+    // GAME OVER DRAW
+    // =================================================
     if (_showGameOver) {
         window->draw(_gameOverSprite);
         return; 
     }
-    float centerX = WM_GI->getWidthScreen() / 2.f;
-    float startY = WM_GI->getHeightScreen() * 0.2f;
-    float lineGap = 54.f;
+    
+    // =================================================
+    // STATUS TEXT RENDER
+    // =================================================
+    float centerX = (DESIGN_W / 2.f) * sx;
+    float startY  = (DESIGN_H * 0.16f) * sy;
+    float lineGap = 54.f * sy;
 
     int i = 0;
     for (auto& msg : _statusQueue) {
         Text t;
         t.setFont(*_font);
-        t.setCharacterSize(24);
+        t.setCharacterSize(static_cast<unsigned>(18 * sy));
         t.setString(msg.text);
 
         float alpha = 255.f * (msg.lifetime / STATUS_DURATION);
         t.setOutlineThickness(1.f);
-        t.setOutlineColor(Color(0, 0, 0, (Uint8)(alpha * 0.8f)));
-
+        t.setOutlineColor(Color(0, 0, 0, static_cast<Uint8>(alpha * 0.8f)));
 
         auto b = t.getLocalBounds();
         t.setOrigin(b.width / 2.f, 0.f);
@@ -824,51 +610,8 @@ void StateNewGame::Render(RenderWindow* window)
         }
         return;
     }
-
-    float centerY = WM_GI->getHeightScreen() * 0.35f;
-    float spacing = 60.f;
-
-    // ===== P1 LAST CARD =====
-    float startX_P1 = WM_GI->getWidthScreen() * 0.15f;
-
-    for (int i = 0; i < _playedP1UI.size(); ++i) {
-        _playedP1UI[i].setPosition(
-        startX_P1 - i * spacing,
-        centerY
-    );
-    window->draw(_playedP1UI[i]);
-    }
-
-    // ===== P2 LAST CARD =====
-    float startX_P2 = WM_GI->getWidthScreen() * 0.8f;
-
-    for (int i = 0; i < _playedP2UI.size(); ++i) {
-        _playedP2UI[i].setPosition(
-        startX_P2 + i * spacing,
-        centerY
-    );
-    window->draw(_playedP2UI[i]);
-    }
-
-    // ===== LABEL P1 =====
-    if (!_playedP1UI.empty()) {
-        txtPlayedP1.setPosition(
-            startX_P1 - 10.f,
-            centerY - 100.f
-        );
-        window->draw(txtPlayedP1);
-    }
-
-    // ===== LABEL P2 =====
-    if (!_playedP2UI.empty()) {
-        txtPlayedP2.setPosition(
-            startX_P2 + 20.f,
-            centerY - 100.f
-        );
-        window->draw(txtPlayedP2);
-    }
-
-
+    
+    // ===== HUD =====
     txtTurn.setString(
         "TURN " + to_string(_turnCount) +
         (_current == _player1.get() ? " - P1" : " - P2")
@@ -894,33 +637,17 @@ void StateNewGame::Render(RenderWindow* window)
     window->draw(txtP2_Shield);
     window->draw(avatarP1);
     window->draw(avatarP2);
+    
+    _playedView.draw(window);
 
-    for (auto& c : m_HandUI)
-        window->draw(c.sprite);
+
 
     if (_phase == Phase::InputEnergy) {
 
-        window->draw(txtEnergyHint);
-
-        window->draw(txtAtkLabel);
-        window->draw(txtDefLabel);
-        window->draw(txtJpLabel);
-
-        window->draw(atkBox.box);
-        window->draw(defBox.box);
-        window->draw(jpBox.box);
-
-        window->draw(atkBox.text);
-        window->draw(defBox.text);
-        window->draw(jpBox.text);
-
-        window->draw(btnConfirmEnergy);
-        window->draw(txtConfirmEnergy);
+        _energyUI.draw(window);
     }
 
 
-    if (_phase == Phase::PickCards) {
-        window->draw(btnConfirmCards);
-        window->draw(txtConfirmCards);
-    }
+    _handUI.draw(window);
+
 }

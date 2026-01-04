@@ -133,9 +133,9 @@ void Player::allocateCursedEnergy(int atk, int def, int jp)
 
 vector<Card*> Player::pickCards(const vector<unique_ptr<Card>>& hand) {
     vector<Card*> selected;
-    cout << "Chon 4 la bai (nhap 4 so): ";
+    cout << "Chon  la bai (nhap 3 so): ";
 
-    vector<int> picks(4);
+    vector<int> picks(3);
     for (int& x : picks) cin >> x;
 
     cout << "=====================================\n\n";

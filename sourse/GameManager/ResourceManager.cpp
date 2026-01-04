@@ -7,6 +7,7 @@ ResourceManager::ResourceManager() {
 	// MUSIC
 	Music* music1 = new Music();
 	Music* music2 = new Music();
+	Music* music3 = new Music();
 
 	music1->openFromFile("Data/Music/backgroundmusic2.ogg");
 	m_BackgroundMusic = music1;
@@ -14,7 +15,11 @@ ResourceManager::ResourceManager() {
 	m_BackgroundMusic->play();
 
 	music2->openFromFile("Data/Music/winmusic2.ogg");
-	m_WinMusic = music2;
+	m_LoseMusic = music2;
+
+	music3->openFromFile("Data/Music/winmusic3.ogg");
+	m_WinMusic = music3;
+
 	// SOUND
 	SoundBuffer* soundBuffer1 = new SoundBuffer();
 	SoundBuffer* soundBuffer2 = new SoundBuffer();
@@ -114,7 +119,10 @@ Music* ResourceManager::getWinMusic()
 {
 	return m_WinMusic;
 }
-
+Music* ResourceManager::getLoseMusic()
+{
+	return m_LoseMusic;
+}
 float ResourceManager::getBMVolume()
 {
 	return m_BackgroundMusic->getVolume();
@@ -160,6 +168,7 @@ ResourceManager::~ResourceManager()
 	delete m_Instance;
 	delete m_BackgroundMusic;
 	delete m_WinMusic;
+	delete m_LoseMusic;
 	delete m_ClickSound;
 	delete m_MovedIntoSpriteSound;
 }

@@ -23,7 +23,7 @@ public:
 	Sound* getMovedIntoSpriteSound();
 	Music* getBackgroundMusic();
 	Music* getWinMusic();
-
+	Music* getLoseMusic();
 	float getBMVolume();
 	float getWMVolume();
 	float getCSVolume();
@@ -44,6 +44,6 @@ private:
 
 	float m_BackgroundVolume, m_WinVolume, m_ClickVolume, m_MovedIntoSpriteVolume;
 
-	Music* m_BackgroundMusic, * m_WinMusic;
+	Music* m_BackgroundMusic, * m_WinMusic, *m_LoseMusic;
 	Sound* m_ClickSound, * m_MovedIntoSpriteSound;
 };
